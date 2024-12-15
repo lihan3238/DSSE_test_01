@@ -1,0 +1,19 @@
+{
+    "dependencies": [
+        {
+            "name": "openssl",
+            "host": true,
+            "version>=": "3.4.0"
+        },
+        {
+            "name": "jsoncpp",
+            "host": true,
+            "version>=": "1.9.6"
+        },
+        {
+            "name": "cpp-httplib",
+            "host": true,
+            "version>=": "0.18.0"
+        }
+    ]
+}

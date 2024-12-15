@@ -1,0 +1,10 @@
+# 忽略所有文件
+*
+
+# 例外规则：仅允许 .json、.cpp 和 .h 文件
+!*.json
+!*.cpp
+!*.h
+
+# 例外规则：允许 .gitignore 文件自身被追踪
+!.gitignore
