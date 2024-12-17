@@ -10,3 +10,7 @@
 void setupClientData();
 
 void updateClient();
+
+std::vector<std::string> searchToken(const std::vector<std::string>& words,string Q,int q);
+
+void searchClient(std::vector<std::string> searchTokens, string Q, int q);

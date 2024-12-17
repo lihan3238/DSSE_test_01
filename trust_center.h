@@ -6,6 +6,7 @@
 using namespace std;
 
 // Base64 编码
-std::string vectorToBase64(const std::vector<Byte>&);
+std::string stringToBase64(const std::string& data); // 修改为 std::string
 
-void startTrustCenter(int, int);
+// 启动信任中心
+void startTrustCenter(int param1, int param2);

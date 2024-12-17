@@ -9,4 +9,5 @@
 // 服务端处理请求，发送参数
 
 void setupServerData();
-void startServer();
+void updateServer();
+void searchServer();

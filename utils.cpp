@@ -1,17 +1,16 @@
-
 #include "utils.h"
 
-const int HASH_LEN = 32; // 哈希值长度
+const size_t HASH_LEN = 32; // 哈希值长度
 // XOR 
 
-vector<Byte> xorKeys(const vector<Byte>&key1, const vector<Byte>&key2) {
-    size_t maxLength = max(key1.size(), key2.size());
-    vector<Byte> paddedKey1 = key1, paddedKey2 = key2;
+std::string xorKeys(const std::string& key1, const std::string& key2) {
+    size_t maxLength = std::max(key1.size(), key2.size());
+    std::string paddedKey1 = key1, paddedKey2 = key2;
 
-    paddedKey1.resize(maxLength, 0);
-    paddedKey2.resize(maxLength, 0); // 将两个key的长度补齐为较长的一个的长度
+    paddedKey1.resize(maxLength, '\0');
+    paddedKey2.resize(maxLength, '\0'); // 将两个key的长度补齐为较长的一个的长度
 
-    vector<Byte> result(maxLength);
+    std::string result(maxLength, '\0');
     for (size_t i = 0; i < maxLength; ++i) {
         result[i] = paddedKey1[i] ^ paddedKey2[i];
     }
@@ -19,30 +18,30 @@ vector<Byte> xorKeys(const vector<Byte>&key1, const vector<Byte>&key2) {
 }
 
 // 生成随机密钥
-vector<Byte> generateRandomKey(int length) {
-    vector<Byte> key(length);
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dis(33,126);
-    //uniform_int_distribution<> dis(0, 255);
+std::string generateRandomKey(int length) {
+    std::string key(length, '\0');
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(33, 126);
+    // uniform_int_distribution<> dis(0, 255);
     for (int i = 0; i < length; ++i) {
-        key[i] = static_cast<Byte>(dis(gen));
+        key[i] = static_cast<char>(dis(gen));
     }
     return key;
 }
 
-// 将 char 数组转换为 vector<Byte>
-std::vector<Byte> charArrayToByteVector(const char* charArray, size_t length) {
-    return std::vector<Byte>(charArray, charArray + length);
+// 将 char 数组转换为 string
+std::string charArrayToByteString(const char* charArray, size_t length) {
+    return std::string(charArray, length);
 }
 
-// 将 vector<Byte> 转换为 char 数组
-std::vector<char> byteVectorToCharArray(const std::vector<Byte>& byteVector) {
-    return std::vector<char>(byteVector.begin(), byteVector.end());
+// 将 string 转换为 char 数组
+std::vector<char> byteStringToCharArray(const std::string& byteString) {
+    return std::vector<char>(byteString.begin(), byteString.end());
 }
 
 // 计算 SHA256 哈希
-std::vector<Byte> computeSHA256(const std::vector<Byte>& data) {
+std::string computeSHA256(const std::string& data) {
     EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
     if (mdctx == nullptr) {
         throw std::runtime_error("EVP_MD_CTX_new failed");
@@ -68,9 +67,9 @@ std::vector<Byte> computeSHA256(const std::vector<Byte>& data) {
     }
 
     // 获取最终的哈希结果
-    std::vector<Byte> hash(EVP_MD_size(md)); // 获取哈希的大小（SHA256 是 32 字节）
+    std::string hash(EVP_MD_size(md), '\0'); // 获取哈希的大小（SHA256 是 32 字节）
     unsigned int length = 0;
-    if (EVP_DigestFinal_ex(mdctx, hash.data(), &length) != 1) {
+    if (EVP_DigestFinal_ex(mdctx, reinterpret_cast<unsigned char*>(&hash[0]), &length) != 1) {
         EVP_MD_CTX_free(mdctx);
         throw std::runtime_error("EVP_DigestFinal_ex failed");
     }
@@ -82,16 +81,16 @@ std::vector<Byte> computeSHA256(const std::vector<Byte>& data) {
 }
 
 // 计算哈希 h1
-std::vector<Byte> h1(const std::vector<Byte>& message, int flag) {
-    std::vector<Byte> data = { static_cast<Byte>(flag) };
-    data.insert(data.end(), message.begin(), message.end()); // 拼接 flag 和消息
+std::string h1(const std::string& message, int flag) {
+    std::string data(1, static_cast<char>(flag));
+    data += message; // 拼接 flag 和消息
     return computeSHA256(data);
 }
 
 // 计算哈希 h2
-std::vector<Byte> h2(const std::vector<Byte>& message) {
-    std::vector<Byte> hash(HASH_LEN + 4); // 第一轮 HASH_LEN 字节，第二轮追加 4 字节
-    std::vector<Byte> K(HASH_LEN);         // 临时存储每轮哈希的结果
+std::string h2(const std::string& message) {
+    std::string hash(HASH_LEN + 4, '\0'); // 第一轮 HASH_LEN 字节，第二轮追加 4 字节
+    std::string K(HASH_LEN, '\0');         // 临时存储每轮哈希的结果
 
     EVP_MD_CTX* mdctx = EVP_MD_CTX_new(); // 创建哈希上下文
     if (mdctx == nullptr) {
@@ -105,7 +104,7 @@ std::vector<Byte> h2(const std::vector<Byte>& message) {
         unsigned char flag1 = 1; // 标志位 1
         EVP_DigestUpdate(mdctx, &flag1, 1); // 加入标志位
         EVP_DigestUpdate(mdctx, message.data(), message.size()); // 加入消息
-        EVP_DigestFinal_ex(mdctx, K.data(), nullptr); // 计算第一轮哈希结果
+        EVP_DigestFinal_ex(mdctx, reinterpret_cast<unsigned char*>(&K[0]), nullptr); // 计算第一轮哈希结果
         std::copy(K.begin(), K.end(), hash.begin()); // 将第一轮结果拷贝到 hash 的前 HASH_LEN 字节
 
         // 第二轮哈希
@@ -113,7 +112,7 @@ std::vector<Byte> h2(const std::vector<Byte>& message) {
         unsigned char flag2 = 2; // 标志位 2
         EVP_DigestUpdate(mdctx, &flag2, 1); // 加入标志位
         EVP_DigestUpdate(mdctx, message.data(), message.size()); // 加入消息
-        EVP_DigestFinal_ex(mdctx, K.data(), nullptr); // 计算第二轮哈希结果
+        EVP_DigestFinal_ex(mdctx, reinterpret_cast<unsigned char*>(&K[0]), nullptr); // 计算第二轮哈希结果
         std::copy(K.begin(), K.begin() + 4, hash.begin() + HASH_LEN); // 取第二轮的前 4 字节追加到 hash 的后 4 字节
 
     }
@@ -129,9 +128,9 @@ std::vector<Byte> h2(const std::vector<Byte>& message) {
 }
 
 
-std::vector<Byte> h34(const std::vector<Byte>& message, int index, int flag) {
-    std::vector<Byte> hash(HASH_LEN); // 存储最终的哈希结果
-    std::vector<Byte> K(HASH_LEN);    // 临时存储哈希计算结果
+std::string h34(const std::string& message, int index, int flag) {
+    std::string hash(HASH_LEN, '\0'); // 存储最终的哈希结果
+    std::string K(HASH_LEN, '\0');    // 临时存储哈希计算结果
     unsigned char cI[4] = { 0 };      // 存储索引部分
 
     // 初始化 cI
@@ -151,7 +150,7 @@ std::vector<Byte> h34(const std::vector<Byte>& message, int index, int flag) {
         EVP_DigestUpdate(mdctx, &flag, sizeof(flag));  // 处理 flag
         EVP_DigestUpdate(mdctx, cI, 4);                 // 处理索引
         EVP_DigestUpdate(mdctx, message.data(), message.size()); // 处理消息
-        EVP_DigestFinal_ex(mdctx, K.data(), nullptr);  // 计算哈希并存储结果
+        EVP_DigestFinal_ex(mdctx, reinterpret_cast<unsigned char*>(&K[0]), nullptr);  // 计算哈希并存储结果
 
         // 将结果拷贝到 hash 向量
         std::copy(K.begin(), K.end(), hash.begin());
@@ -168,39 +167,36 @@ std::vector<Byte> h34(const std::vector<Byte>& message, int index, int flag) {
     return hash; // 返回计算出的哈希值
 }
 
-// 伪随机数生成函数，接收三个输入参数并输出伪随机数
-std::vector<Byte> f2(const std::vector<Byte>& key1, const std::vector<Byte>& key2, const std::vector<Byte>& key3, size_t length) {
-    // 合并三个输入参数
-    std::vector<Byte> combinedData;
-    combinedData.insert(combinedData.end(), key1.begin(), key1.end());
-    combinedData.insert(combinedData.end(), key2.begin(), key2.end());
-    combinedData.insert(combinedData.end(), key3.begin(), key3.end());
+// 伪随机数生成函数，接收两个输入参数并输出伪随机数
+std::string f2(const std::string& key1, const std::string& key2, size_t length) {
+    // 合并两个输入参数
+    std::string combinedData = key1 + key2;
 
     // 使用 SHA256 计算哈希值
-    std::vector<Byte> hashSeed = computeSHA256(combinedData);
+    std::string hashSeed = computeSHA256(combinedData);
 
     // 生成伪随机数
-    std::vector<Byte> prngOutput(length);
+    std::string prngOutput(length, '\0');
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
     if (ctx == nullptr) {
         throw std::runtime_error("Failed to create EVP_CIPHER_CTX");
     }
 
     // 使用 SHA256 哈希作为密钥，初始化伪随机数生成器
-    if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, hashSeed.data(), nullptr) != 1) {
+    if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, reinterpret_cast<const unsigned char*>(hashSeed.data()), nullptr) != 1) {
         EVP_CIPHER_CTX_free(ctx);
         throw std::runtime_error("Failed to initialize EVP_EncryptInit_ex");
     }
 
     // 加密伪随机数输出（AES 加密以生成伪随机数）
     int outlen = 0;
-    if (EVP_EncryptUpdate(ctx, prngOutput.data(), &outlen, prngOutput.data(), length) != 1) {
+    if (EVP_EncryptUpdate(ctx, reinterpret_cast<unsigned char*>(&prngOutput[0]), &outlen, reinterpret_cast<const unsigned char*>(&prngOutput[0]), length) != 1) {
         EVP_CIPHER_CTX_free(ctx);
         throw std::runtime_error("Failed to generate pseudo-random data");
     }
 
     // 完成加密
-    if (EVP_EncryptFinal_ex(ctx, prngOutput.data() + outlen, &outlen) != 1) {
+    if (EVP_EncryptFinal_ex(ctx, reinterpret_cast<unsigned char*>(&prngOutput[0]) + outlen, &outlen) != 1) {
         EVP_CIPHER_CTX_free(ctx);
         throw std::runtime_error("Failed to finalize pseudo-random data generation");
     }
@@ -209,9 +205,9 @@ std::vector<Byte> f2(const std::vector<Byte>& key1, const std::vector<Byte>& key
     return prngOutput;
 }
 
-// AES 加密函数，返回加密后的数据
-std::vector<Byte> aesEncrypt(const std::vector<Byte>& data, const std::vector<Byte>& key, const std::vector<Byte>& iv) {
-    if (key.size() != AES_BLOCK_SIZE) {
+
+std::string aesEncrypt(const std::string& data, const std::string& key, const std::string& iv) {
+    if (key.size() != 2 * AES_BLOCK_SIZE) {
         throw std::invalid_argument("AES key must be 256 bits (32 bytes).");
     }
     if (iv.size() != AES_BLOCK_SIZE) {
@@ -224,23 +220,23 @@ std::vector<Byte> aesEncrypt(const std::vector<Byte>& data, const std::vector<By
     }
 
     // 初始化 AES 加密
-    if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key.data(), iv.data()) != 1) {
+    if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, reinterpret_cast<const unsigned char*>(key.data()), reinterpret_cast<const unsigned char*>(iv.data())) != 1) {
         EVP_CIPHER_CTX_free(ctx);
         throw std::runtime_error("Failed to initialize AES encryption");
     }
 
     // 计算加密后的数据大小
     int ciphertext_len = data.size() + AES_BLOCK_SIZE;
-    std::vector<Byte> ciphertext(ciphertext_len);
+    std::string ciphertext(ciphertext_len, '\0');
 
     int len = 0;
-    if (EVP_EncryptUpdate(ctx, ciphertext.data(), &len, data.data(), data.size()) != 1) {
+    if (EVP_EncryptUpdate(ctx, reinterpret_cast<unsigned char*>(&ciphertext[0]), &len, reinterpret_cast<const unsigned char*>(data.data()), data.size()) != 1) {
         EVP_CIPHER_CTX_free(ctx);
         throw std::runtime_error("Failed to encrypt data");
     }
 
     int final_len = 0;
-    if (EVP_EncryptFinal_ex(ctx, ciphertext.data() + len, &final_len) != 1) {
+    if (EVP_EncryptFinal_ex(ctx, reinterpret_cast<unsigned char*>(&ciphertext[0]) + len, &final_len) != 1) {
         EVP_CIPHER_CTX_free(ctx);
         throw std::runtime_error("Failed to finalize encryption");
     }
@@ -251,8 +247,7 @@ std::vector<Byte> aesEncrypt(const std::vector<Byte>& data, const std::vector<By
     return ciphertext;
 }
 
-// AES 解密函数，返回解密后的数据
-std::vector<Byte> aesDecrypt(const std::vector<Byte>& encryptedData, const std::vector<Byte>& key, const std::vector<Byte>& iv) {
+std::string aesDecrypt(const std::string& encryptedData, const std::string& key, const std::string& iv) {
     if (key.size() != AES_BLOCK_SIZE) {
         throw std::invalid_argument("AES key must be 256 bits (32 bytes).");
     }
@@ -266,22 +261,22 @@ std::vector<Byte> aesDecrypt(const std::vector<Byte>& encryptedData, const std::
     }
 
     // 初始化 AES 解密
-    if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key.data(), iv.data()) != 1) {
+    if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, reinterpret_cast<const unsigned char*>(key.data()), reinterpret_cast<const unsigned char*>(iv.data())) != 1) {
         EVP_CIPHER_CTX_free(ctx);
         throw std::runtime_error("Failed to initialize AES decryption");
     }
 
     // 计算解密后的数据大小
-    std::vector<Byte> decryptedData(encryptedData.size());
+    std::string decryptedData(encryptedData.size(), '\0');
     int len = 0;
 
-    if (EVP_DecryptUpdate(ctx, decryptedData.data(), &len, encryptedData.data(), encryptedData.size()) != 1) {
+    if (EVP_DecryptUpdate(ctx, reinterpret_cast<unsigned char*>(&decryptedData[0]), &len, reinterpret_cast<const unsigned char*>(encryptedData.data()), encryptedData.size()) != 1) {
         EVP_CIPHER_CTX_free(ctx);
         throw std::runtime_error("Failed to decrypt data");
     }
 
     int final_len = 0;
-    if (EVP_DecryptFinal_ex(ctx, decryptedData.data() + len, &final_len) != 1) {
+    if (EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char*>(&decryptedData[0]) + len, &final_len) != 1) {
         EVP_CIPHER_CTX_free(ctx);
         throw std::runtime_error("Failed to finalize decryption");
     }
@@ -293,8 +288,8 @@ std::vector<Byte> aesDecrypt(const std::vector<Byte>& encryptedData, const std::
 }
 
 // 初始化布隆过滤器（简单占位实现）
-vector<int> initializeBloomFilter(int size) {
-    return vector<int>(size, 0); // 初始化为空
+std::vector<int> initializeBloomFilter(int size) {
+    return std::vector<int>(size, 0); // 初始化为空
 }
 
 // 生成种子值（基于密钥的哈希值）
@@ -304,7 +299,7 @@ unsigned int generateSeed(const std::string& key) {
 }
 
 // Fisher-Yates Shuffle 实现（带密钥）
-void f1(std::vector<Byte>& array, const std::string& key) {
+void f1(std::string& array, const std::string& key) {
     unsigned int seed = generateSeed(key); // 基于密钥生成随机数种子
     std::mt19937 gen(seed);               // 初始化随机数生成器
 
@@ -316,7 +311,7 @@ void f1(std::vector<Byte>& array, const std::string& key) {
     }
 }
 
-std::string base64Encode(const std::vector<Byte>& data) {
+std::string base64Encode(const std::string& data) {
     BIO* bio, * b64;
     BUF_MEM* bufferPtr;
 
@@ -334,26 +329,51 @@ std::string base64Encode(const std::vector<Byte>& data) {
     return encoded;
 }
 
-std::vector<Byte> base64Decode(const std::string& encoded) {
+std::string base64Decode(const std::string& encoded) {
     BIO* bio, * b64;
     int decodeLen = encoded.length();
-    std::vector<Byte> decoded(decodeLen);
+    std::string decoded(decodeLen, '\0');
 
     b64 = BIO_new(BIO_f_base64());
     bio = BIO_new_mem_buf(encoded.data(), -1);
     BIO_push(b64, bio);
 
-    decodeLen = BIO_read(b64, decoded.data(), decodeLen);
+    decodeLen = BIO_read(b64, &decoded[0], decodeLen);
     decoded.resize(decodeLen);
     BIO_free_all(b64);
 
     return decoded;
 }
 
-std::vector<Byte> intTo4ByteVector(int value) {
-    std::vector<Byte> bytes(4); // 创建一个大小为 4 的 vector
+std::string intTo4ByteString(int value) {
+    std::string bytes(4, '\0'); // 创建一个大小为 4 的字符串
     for (int i = 0; i < 4; i++) {
-        bytes[i] = (value >> (i * 8)) & 0xFF; // 提取每个字节并存入 vector
+        bytes[i] = static_cast<char>((value >> (i * 8)) & 0xFF); // 提取每个字节并存入字符串
     }
     return bytes;
 }
+
+std::string intTo32ByteString(int value) {
+    std::string bytes(32, '\0'); // 初始化一个大小为 32 的字符串，默认值为 0
+    for (int i = 0; i < 4; i++) {   // 只处理低 4 字节
+        bytes[i] = static_cast<char>((value >> (i * 8)) & 0xFF); // 提取每个字节并存入字符串
+    }
+    return bytes;
+}
+
+std::string stringTo4ByteString(const std::string& input) {
+    std::string bytes(4, '\0'); // 初始化为 4 个 '\0'
+    for (size_t i = 0; i < 4 && i < input.size(); ++i) {
+        bytes[i] = input[i]; // 转换字符为 Byte
+    }
+    return bytes;
+}
+
+int byteStringToInt(const std::string& bytes) {
+    int value = 0;
+    for (int i = 0; i < 4; i++) {
+        value |= (static_cast<unsigned char>(bytes[i]) << (i * 8));  // 将每个字节按位置拼接起来
+    }
+    return value;
+}
+
