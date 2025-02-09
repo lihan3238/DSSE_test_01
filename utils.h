@@ -59,6 +59,11 @@ std::string base64Encode(const std::string&);
 std::string base64Decode(const std::string&);
 
 std::string intTo4ByteString(int value);
+
+int stringToInt(const std::string& str);
+
+std::string intTo28ByteString(int value);
+
 std::string intTo32ByteString(int value);
-std::string stringTo4ByteString(const std::string& input);
+//std::string stringTo4ByteString(const std::string& input);
 int byteStringToInt(const std::string& bytes);

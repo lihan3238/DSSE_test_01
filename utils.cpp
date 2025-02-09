@@ -248,7 +248,7 @@ std::string aesEncrypt(const std::string& data, const std::string& key, const st
 }
 
 std::string aesDecrypt(const std::string& encryptedData, const std::string& key, const std::string& iv) {
-    if (key.size() != AES_BLOCK_SIZE) {
+    if (key.size() != 2*AES_BLOCK_SIZE) {
         throw std::invalid_argument("AES key must be 256 bits (32 bytes).");
     }
     if (iv.size() != AES_BLOCK_SIZE) {
@@ -276,10 +276,10 @@ std::string aesDecrypt(const std::string& encryptedData, const std::string& key,
     }
 
     int final_len = 0;
-    if (EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char*>(&decryptedData[0]) + len, &final_len) != 1) {
-        EVP_CIPHER_CTX_free(ctx);
-        throw std::runtime_error("Failed to finalize decryption");
-    }
+    //if (EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char*>(&decryptedData[0]) + len, &final_len) != 1) {
+    //    EVP_CIPHER_CTX_free(ctx);
+    //    throw std::runtime_error("Failed to finalize decryption");
+    //}
 
     decryptedData.resize(len + final_len);
     EVP_CIPHER_CTX_free(ctx);
@@ -346,12 +346,40 @@ std::string base64Decode(const std::string& encoded) {
 }
 
 std::string intTo4ByteString(int value) {
-    std::string bytes(4, '\0'); // 创建一个大小为 4 的字符串
-    for (int i = 0; i < 4; i++) {
-        bytes[i] = static_cast<char>((value >> (i * 8)) & 0xFF); // 提取每个字节并存入字符串
+    // 将整数转换为字符串形式
+    std::string str = std::to_string(value);
+
+    // 如果长度不足4，补充'\0'
+    if (str.size() < 4) {
+        str.append(4 - str.size(), '\0'); // 用'\0'补齐到4字节
     }
-    return bytes;
+    else if (str.size() > 4) {
+        // 如果超过4字节，只取前4字节
+        str = str.substr(0, 4);
+    }
+
+    return str;
 }
+
+int stringToInt(const std::string& str) {
+    // 去掉尾部的 '\0' 并只取有效的数字部分
+    std::string trimmedStr;
+    for (char c : str) {
+        if (c != '\0') {
+            trimmedStr += c;
+        }
+    }
+
+    // 将去掉 '\0' 的字符串转换为整数
+    try {
+        return std::stoi(trimmedStr);
+    }
+    catch (...) {
+        // 如果转换失败，返回 0 或者你希望的默认值
+        return 0;
+    }
+}
+
 
 std::string intTo32ByteString(int value) {
     std::string bytes(32, '\0'); // 初始化一个大小为 32 的字符串，默认值为 0
@@ -361,13 +389,21 @@ std::string intTo32ByteString(int value) {
     return bytes;
 }
 
-std::string stringTo4ByteString(const std::string& input) {
-    std::string bytes(4, '\0'); // 初始化为 4 个 '\0'
-    for (size_t i = 0; i < 4 && i < input.size(); ++i) {
-        bytes[i] = input[i]; // 转换字符为 Byte
+std::string intTo28ByteString(int value) {
+    std::string bytes(28, '\0'); // 初始化一个大小为 32 的字符串，默认值为 0
+    for (int i = 0; i < 4; i++) {   // 只处理低 4 字节
+        bytes[i] = static_cast<char>((value >> (i * 8)) & 0xFF); // 提取每个字节并存入字符串
     }
     return bytes;
 }
+
+//std::string stringTo4ByteString(const std::string& input) {
+//    std::string bytes(4, '\0'); // 初始化为 4 个 '\0'
+//    for (size_t i = 0; i < 4 && i < input.size(); ++i) {
+//        bytes[i] = input[i]; // 转换字符为 Byte
+//    }
+//    return bytes;
+//}
 
 int byteStringToInt(const std::string& bytes) {
     int value = 0;

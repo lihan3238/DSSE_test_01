@@ -95,10 +95,12 @@ void updateClient() {
     std::string k_prime(sk_prime.size(), '\0');
     f1(k_prime, sk_prime);
 
+	cout << "sk'= " << sk_prime << endl;
+	cout << "k'= " << k_prime << endl;
+
     std::string tmp1;
     std::string tmp2;
     std::string k;
-    std::string k_str;
     std::map<std::string, std::string> st;
     std::string Conn_key;
     std::string Conn_value;
@@ -152,7 +154,7 @@ void updateClient() {
         if (jsonData.isMember(word)) {
             const Json::Value& wordData = jsonData[word];
             std::vector<int> numbers;
-
+			DB = 0;  // 重置 DB 计数
             // 获取该单词对应数组的所有元素
             for (const auto& num : wordData) {
                 numbers.push_back(num.asInt());
@@ -161,6 +163,12 @@ void updateClient() {
 
             // 将该单词对应的数字列表存入 index
             index[word] = numbers;
+			cout << "geted Word: " << word << ", Numbers: " << "DB: " << DB << endl;
+            for (const auto& num : numbers) {
+                cout << num << " ";
+            }
+			cout << endl;
+
         }
     }
 
@@ -175,48 +183,74 @@ void updateClient() {
             std::cerr << "Warning: Word '" << word << "' not found in index, skipping..." << std::endl;
             continue; // 跳过未在 index 中找到的单词
         }
-        k_str = word;
-        k = k_str;
-        std::string sk_str = sk;
-        f1(k, sk_str);
+        k = word;
+        f1(k, sk);
+
+		cout << "k: " << k << endl;
+
+        cout << "l: " << l << endl;
+
+        cout << "Dic1[l]: " << Dic1[l] << endl;
 
         if (Dic1[l - 1].empty()) {
             st[Dic1[l]] = {}; // question
         }
         else {
-            st[Dic1[l - 1]] = xorKeys(xorKeys(st[Dic1[l - 1]], k), k_prime);
+            st[Dic1[l - 1]] = xorKeys(xorKeys(Dic1[l - 1], k), k_prime);
         }
-        st[Dic1[l]] = xorKeys(xorKeys(st[Dic1[l]], k), k_prime);
+        st[Dic1[l]] = xorKeys(xorKeys(Dic1[l], k), k_prime);
+
         Conn_key = h1(st[Dic1[l]], 1);
+		cout <<" word: "<<word << " st: " << st[Dic1[l]] << " h1(st)(conn_key)= " << h1(st[Dic1[l]], 1) << endl;
         tmp2 = intTo4ByteString(DB);
         tmp1.append(tmp2);
         tmp1.append(st[Dic1[l - 1]]);
         Conn_value = xorKeys(h2(st[Dic1[l]]), tmp1);
+
+		cout << " h2(st): " << h2(st[Dic1[l]]) << " DB(word)|||stl - 1: " <<tmp2<<" + "<< st[Dic1[l - 1]]<<" -> "<<tmp1 << " Conn_value(h2(st) xor DB(word)|||stl - 1) : " << Conn_value << endl;
+
         connectorData[Conn_key] = Conn_value;
 
         std::string skey = f2(Dic1[l], sk, 32);
+
+        cout << "!!!!!!!skey= Dic1[ " << l << " ] ( " << Dic1[l] << " ),sk( " << sk << " )" << endl;
+
+		cout << "skey: " << skey << endl;
 
         // 构造 CBFj,vl
         CountingBloomFilter CBFj_vl(3500, 7);
         std::string tmp3;
 
         for (size_t m = 0; m < index[word].size(); ++m) {
-            std::string indwj_vl_m = intTo32ByteString(index[word][m]);
-            std::string opwj_vl_m = "add"; // 假定操作类型为 add
+			cout << "m: " << m << " index[word][m]: " << index[word][m] << endl;
+            std::string indwj_vl_m = intTo28ByteString(index[word][m]);
+
+            std::string opwj_vl_m = "addw"; // 假定操作类型为 addw
 
             // 更新 CBFj,vl
             CBFj_vl.update(indwj_vl_m, opwj_vl_m);
-            tmp3 = stringTo4ByteString(opwj_vl_m);
+            tmp3 = opwj_vl_m;
             // 生成加密的 indopwj_vl,m
             tmp3.append(indwj_vl_m);
 
+			cout << "indwj_vl_m: " << indwj_vl_m << " opwj_vl_m: " << opwj_vl_m << " tmp3: " << tmp3 << endl;
+
+			cout << " size of tmp3: " << tmp3.size() << endl;
+
             std::string indopwj_vl_m = aesEncrypt(tmp3, skey, IV);
+
+			cout << "indopwj_vl_m: " << indopwj_vl_m << endl;
 
             // 生成 indop_key 和 indop_value
             std::string indop_key = h34(st[Dic1[l]], m, 3);
-            std::string tmp4(4, '\0');
-            tmp4.append(indopwj_vl_m);
-            std::string indop_value = xorKeys(h34(st[Dic1[l]], m, 4), tmp4);
+
+			cout << "indop_key: " << indop_key << endl;
+
+            std::string indop_value = xorKeys(h34(st[Dic1[l]], m, 4), indopwj_vl_m);
+
+            cout << "h4(st) : " << h34(st[Dic1[l]], m, 4) << endl;
+
+			cout << "indop_value: " << indop_value << endl;
 
             indopData[indop_key] = indop_value;
         }
@@ -261,48 +295,47 @@ void updateClient() {
     // 
     // 尝试加载数据
     Json::Value root;
-	map <int, string> Dic2;
+	//map <int, string> Dic2;
 
     // 尝试读取现有数据
-    std::ifstream dic2ifs("Dic2.json");
-    if (dic2ifs.is_open()) {
+    std::ifstream dic1ifs("Dic1.json");
+    if (dic1ifs.is_open()) {
         Json::CharReaderBuilder reader;
         Json::Value root;
         std::string errs;
 
         // 读取并解析 JSON 文件内容
-        if (Json::parseFromStream(reader, dic2ifs, &root, &errs)) {
+        if (Json::parseFromStream(reader, dic1ifs, &root, &errs)) {
             for (const auto& item : root.getMemberNames()) {
                 int l = std::stoi(item);
-                Dic2[l] = root[item].asString();
+                Dic1[l] = root[item].asString();
             }
             std::cout << "Dic2 data loaded successfully." << std::endl;
         }
         else {
             std::cerr << "Failed to parse Dic2.json: " << errs << std::endl;
         }
-        dic2ifs.close();
+        dic1ifs.close();
     }
     else {
         std::cout << "Dic2.json does not exist or is empty. Initializing new map." << std::endl;
     }
 
-	Dic2[l] = Dic1[l];
     // 将 map 数据存入 JSON 对象
-    for (const auto& item : Dic2) {
+    for (const auto& item : Dic1) {
         root[std::to_string(item.first)] = item.second;
     }
 
-    // 保存到 Dic2.json 文件
-    std::ofstream dic2ofs("Dic2.json");
-    if (dic2ofs.is_open()) {
+    // 保存到 Dic1.json 文件
+    std::ofstream dic1ofs("Dic1.json");
+    if (dic1ofs.is_open()) {
         Json::StreamWriterBuilder writer;
-        dic2ofs << Json::writeString(writer, root);
-        dic2ofs.close();
-        std::cout << "Dic2 data saved successfully." << std::endl;
+        dic1ofs << Json::writeString(writer, root);
+        dic1ofs.close();
+        std::cout << "Dic1 data saved successfully." << std::endl;
     }
     else {
-        std::cerr << "Failed to open Dic2.json for writing!" << std::endl;
+        std::cerr << "Failed to open Dic1.json for writing!" << std::endl;
     }
 
     //Up
@@ -317,14 +350,31 @@ void updateClient() {
 
         // 读取并解析 JSON 文件内容
         if (Json::parseFromStream(reader, CBFifs, &root, &errs)) {
-            for (const auto& item : root.getMemberNames()) {
-                const std::string& cbf_key = item;
-                const std::string& cbf_data = root[cbf_key].asString();
-                CountingBloomFilter cbf(3500, 7);
-                cbf.construct(cbf_data);
-                CBFList[cbf_key] =cbf;  // 反序列化 CBF
+            if (root.isArray()) { // 确保顶层是数组
+                for (const auto& item : root) {
+                    if (item.isObject() && item.isMember("key") && item.isMember("data")) {
+                        const std::string& cbf_key = item["key"].asString();
+                        const Json::Value& cbf_data = item["data"];
+
+                        // 将 data 转换为 CountingBloomFilter 的格式
+                        if (cbf_data.isArray()) {
+                            CountingBloomFilter cbf(3500, 7);
+                            std::string serialized_data;
+
+                            for (const auto& value : cbf_data) {
+                                serialized_data += std::to_string(value.asInt()); // 假设是整数
+                            }
+
+                            cbf.construct(serialized_data);
+                            CBFList[cbf_key] = cbf;  // 反序列化 CBF
+                        }
+                    }
+                }
+                std::cout << "CBFList data loaded successfully." << std::endl;
             }
-            std::cout << "CBFList data loaded successfully." << std::endl;
+            else {
+                std::cerr << "JSON root is not an array." << std::endl;
+            }
         }
         else {
             std::cerr << "Failed to parse CBFList.json: " << errs << std::endl;
@@ -332,8 +382,9 @@ void updateClient() {
         CBFifs.close();
     }
     else {
-        std::cout << "Dic2.json does not exist or is empty. Initializing new map." << std::endl;
+        std::cout << "CBFList.json does not exist or is empty. Initializing new map." << std::endl;
     }
+
 
         string stwjvl;
         for (const auto& item : Up) {
@@ -343,10 +394,10 @@ void updateClient() {
 			CBFjStr = get<2>(item);
 
             // Step 1: Set Dic1[l] = vl
-            Dic1[l] = Dic2[l];
+            //Dic1[l] = Dic2[l];
 
             // Process the Up data for each item (k, l, CBFj)
-            std::string vl = Dic2[l];
+            std::string vl = Dic1[l];
 
             // Step 2: Loop while Up is not empty (this loop represents handling each Up item)
                         // Pop the current Up item
@@ -407,38 +458,38 @@ void updateClient() {
 }
 
 std::vector<std::string> searchToken(const std::vector<std::string>& words, string Q, int q) {
-    std::map<int, std::string> Dic2;
+    std::map<int, std::string> Dic1;
     int l_n = 0;
     std::vector<std::string> searchTokens;
 
     // 尝试读取现有数据
-    std::ifstream dic2ifs("Dic2.json");
-    if (dic2ifs.is_open()) {
+    std::ifstream dic1ifs("Dic1.json");
+    if (dic1ifs.is_open()) {
         Json::CharReaderBuilder reader;
         Json::Value root;
         std::string errs;
 
         // 读取并解析 JSON 文件内容
-        if (Json::parseFromStream(reader, dic2ifs, &root, &errs)) {
+        if (Json::parseFromStream(reader, dic1ifs, &root, &errs)) {
             for (const auto& item : root.getMemberNames()) {
                 int l = std::stoi(item);
                 if (l > l_n) {
                     l_n = l;
                 }
-                Dic2[l] = root[item].asString();
+                Dic1[l] = root[item].asString();
             }
-            std::cout << "Dic2 data loaded successfully." << std::endl;
+            std::cout << "Dic1 data loaded successfully." << std::endl;
         }
         else {
-            std::cerr << "Failed to parse Dic2.json: " << errs << std::endl;
+            std::cerr << "Failed to parse Dic1.json: " << errs << std::endl;
         }
-        dic2ifs.close();
+        dic1ifs.close();
     }
     else {
-        std::cout << "Dic2.json does not exist or is empty. Initializing new map." << std::endl;
+        std::cout << "Dic1.json does not exist or is empty. Initializing new map." << std::endl;
     }
 
-    std::string vl = Dic2[l_n];
+    std::string vl = Dic1[l_n];
     std::string sk;
     std::string MK;
 
@@ -464,6 +515,7 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
         std::string k = word;
         f1(k, sk); // 再次加密
         searchTokens.push_back(xorKeys(xorKeys(k, k_prime), vl)); // 生成搜索令牌
+		cout << searchTokens[0] << endl;
     }
 
     return searchTokens; // 返回处理后的搜索令牌
@@ -472,45 +524,58 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
 
 void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
 
-    map <int, string> Dic2;
+    map <int, string> Dic1;
 
     // 尝试读取现有数据
-    std::ifstream dic2ifs("Dic2.json");
-    if (dic2ifs.is_open()) {
+    std::ifstream dic1ifs("Dic1.json");
+    if (dic1ifs.is_open()) {
         Json::CharReaderBuilder reader;
         Json::Value root;
         std::string errs;
 
         // 读取并解析 JSON 文件内容
-        if (Json::parseFromStream(reader, dic2ifs, &root, &errs)) {
+        if (Json::parseFromStream(reader, dic1ifs, &root, &errs)) {
             for (const auto& item : root.getMemberNames()) {
                 int l = std::stoi(item);
-                Dic2[l] = root[item].asString();
+                Dic1[l] = root[item].asString();
             }
-            std::cout << "Dic2 data loaded successfully." << std::endl;
+            std::cout << "Dic1 data loaded successfully." << std::endl;
         }
         else {
-            std::cerr << "Failed to parse Dic2.json: " << errs << std::endl;
+            std::cerr << "Failed to parse Dic1.json: " << errs << std::endl;
         }
-        dic2ifs.close();
+        dic1ifs.close();
     }
     else {
-        std::cout << "Dic2.json does not exist or is empty. Initializing new map." << std::endl;
+        std::cout << "Dic1.json does not exist or is empty. Initializing new map." << std::endl;
     }
 
-	//sendtoserver
-    std::string jsonData = "{ \"tokens\": [";
-    for (size_t i = 0; i < searchTokens.size(); ++i) {
-        jsonData += "\"" + searchTokens[i] + "\"";
-        if (i != searchTokens.size() - 1) {
-            jsonData += ", ";
-        }
+	////sendtoserver
+ //   std::string jsonData = "{ \"tokens\": [";
+ //   for (size_t i = 0; i < searchTokens.size(); ++i) {
+ //       jsonData += "\"" + searchTokens[i] + "\"";
+ //       if (i != searchTokens.size() - 1) {
+ //           jsonData += ", ";
+ //       }
+ //   }
+ //   jsonData += "] }";
+
+    // 构建 JSON 数据
+    Json::Value jsonData;
+    Json::Value tokens(Json::arrayValue);
+
+    // 将搜索令牌编码为 Base64 并添加到 JSON 数组中
+    for (const auto& token : searchTokens) {
+        tokens.append(base64Encode(token));
     }
-    jsonData += "] }";
+    jsonData["tokens"] = tokens;
+
+    Json::StreamWriterBuilder writertoken;
+    std::string jsonString = Json::writeString(writertoken, jsonData);
 
     // 使用 httplib 发送 HTTP 请求
     httplib::Client cli("http://localhost:9001");  // 服务器地址和端口
-    auto res = cli.Post("/search", jsonData, "application/json");
+    auto res = cli.Post("/search", jsonString, "application/json");
 
     if (res && res->status == 200) {
         std::cout << "Server response: " << res->body << std::endl;
@@ -521,9 +586,12 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
 
 
 	//request
+	cout << "/send_Rsearch_Request" << endl;
 
-    httplib::Client cli1("http://127.0.0.1:9001");
-    auto res1 = cli1.Get("/send_Rsearch_Request");
+    //httplib::Client cli1("http://127.0.0.1:9008");
+    //auto res1 = cli1.Get("/send_Rsearch_Request");
+    auto res1 = cli.Get("/send_Rsearch_Request");
+	cout << "res1->status: " << res1->status << endl;
 
     std::vector<std::pair<std::vector<string>, int>> Rsearch;
     std::vector<string> Rwjvl;
@@ -545,7 +613,10 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
                     Rwjvl.push_back(str.asString());
                 }
                 Rsearch.push_back(std::make_pair(Rwjvl, l));
-                std::cout << "l: " << l << ", st: " << Rwjvl[0] << std::endl;
+                std::cout << "l: " << l << endl;
+                for (const auto& str : Rwjvl) {
+                    std::cout << "Rwjvl: " << str << std::endl;
+                }
             }
         }
         else {
@@ -554,38 +625,78 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
 
         std::vector<string> Ind;
         std::vector<string> del;
-
+        int indexNum=0;
         for (const auto& item : Rsearch) {
             std::vector<string> Rwjvl = item.first;
             int l = item.second;
-            std::string st = Rwjvl[0];
-            std::string sk;
-            std::string MK;
-            // 检查文件是否存在，加载数据
-            std::ifstream ifs("client_data.json");
-            if (ifs.is_open()) {
-                Json::CharReaderBuilder reader;
-                Json::Value savedData;
-                std::string errs;
-                if (Json::parseFromStream(reader, ifs, &savedData, &errs)) {
-                    sk = base64Decode(savedData["sk"].asString());
-                    MK = base64Decode(savedData["MK"].asString());
+
+
+            //在l为1，且单关键词情况下
+            std::string indopwjvl = "";
+             indexNum = 0;
+            for (const auto& str : Rwjvl) {
+                indexNum++;
+                indopwjvl = Rwjvl[indexNum-1];
+                std::string sk;
+                std::string MK;
+                // 检查文件是否存在，加载数据
+                std::ifstream ifs("client_data.json");
+                if (ifs.is_open()) {
+                    Json::CharReaderBuilder reader;
+                    Json::Value savedData;
+                    std::string errs;
+                    if (Json::parseFromStream(reader, ifs, &savedData, &errs)) {
+                        sk = base64Decode(savedData["sk"].asString());
+                        MK = base64Decode(savedData["MK"].asString());
+                    }
+                    ifs.close(); // 关闭文件
                 }
-                ifs.close(); // 关闭文件
-            }
-            std::string sk_prime = xorKeys(MK, sk);
-            std::string k_prime(sk_prime.size(), '\0');
-            f1(k_prime, sk_prime); // 加密处理
-            std::string k = xorKeys(xorKeys(st, k_prime), Dic2[l]);
-            std::string skey = f2(Dic2[l], sk, 32);
-            std::string tmp1 = aesDecrypt(k, skey, IV);
-            std::string op = tmp1.substr(0, 4);
-            std::string ind = tmp1.substr(4);
-            if (op == "add") {
-                Ind.push_back(ind);
-            }
-            else if (op == "del") {
-                del.push_back(ind);
+                std::string sk_prime = xorKeys(MK, sk);
+                std::string k_prime(sk_prime.size(), '\0');
+                f1(k_prime, sk_prime); // 加密处理
+                //std::string k = xorKeys(xorKeys(st, k_prime), Dic1[l]);
+                std::string skey = f2(Dic1[l], sk, 32);
+
+                //cout << "k: " << k << endl;
+
+                cout << "skey: " << skey << endl;
+
+				cout << "!!!!!!!skey= Dic1[ " << l << " ] ( " << Dic1[l] << " ),sk( " << sk << " )" << endl;
+
+                cout << "IV: " << IV << endl;
+
+                cout << "indopwjvl Base64:" << indopwjvl << endl;
+				indopwjvl = base64Decode(indopwjvl);
+                cout << "indopwjvl.size():" << indopwjvl.size() << endl;
+
+                cout << "indopwjvl:" << indopwjvl << endl;
+
+                cout << "skey.size():" << skey.size() << endl;
+
+                cout << "IV.size():" << IV.size() << endl;
+
+                std::string tmp1 = aesDecrypt(indopwjvl, skey, IV);
+
+                cout << "tmp1: " << tmp1 << endl;
+                std::string op = tmp1.substr(0, 4);
+                std::string ind = tmp1.substr(4);
+                ind = to_string(byteStringToInt(ind));
+				cout << "op: " << op << endl;
+
+				cout << "ind: " << ind << endl;
+                cout << "tmp1.size():" << tmp1.size() << endl;
+				cout << "ind.size():" << ind.size() << endl;
+
+
+
+
+                if (op == "addw") {
+                    Ind.push_back(ind);
+                }
+                else if (op == "dele") {
+                    del.push_back(ind);
+                }
+
             }
         }
 
@@ -598,7 +709,7 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
         CountingBloomFilter RCBF(3500, 7);
 
         for (const std::string& item : Ind) {
-            RCBF.update(item, "add");
+            RCBF.update(item, "addw");
         }
         //send RCBF to bc
 

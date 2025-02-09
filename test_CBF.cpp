@@ -1,8 +1,9 @@
-//#include <iostream>
-//#include <vector>
-//#include <cassert>
-//#include "cbf.h" // 假设这是你 Bloom Filter 的头文件
-//
+#include <iostream>
+#include <vector>
+#include <cassert>
+#include "utils.h"
+#include "cbf.h" // 假设这是你 Bloom Filter 的头文件
+
 //int main1() {
 //    // 初始化 Counting Bloom Filter，100 个计数器，3 个哈希函数
 //    CountingBloomFilter cbf(100, 3);
@@ -91,3 +92,9 @@
 //
 //    return 0;
 //}
+int main000000() {
+	std::string skey = f2("av", "ab", 32);
+	aesDecrypt("av", skey, "ab");
+	aesEncrypt("av", skey, "ab");
+	return 0;
+}

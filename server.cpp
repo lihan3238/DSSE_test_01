@@ -1,26 +1,29 @@
 #include "server.h"
 
-const int BLOOM_SIZE = 256; // ²¼Â¡¹ýÂËÆ÷´óÐ¡
+const int BLOOM_SIZE = 256; // ï¿½ï¿½Â¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
 
-// Setup º¯Êý£º´Ó Trust Center »ñÈ¡Êý¾Ý²¢±£´æµ½ÎÄ¼þ
-void setupServerData() {
+// Setup ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Trust Center ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½ï¿½æµ½ï¿½Ä¼ï¿½
+void setupServerData()
+{
     std::string k_prime;
     std::string MK;
     httplib::Client cli("http://127.0.0.1:9000");
     auto res = cli.Get("/get_server_data");
 
-    if (res && res->status == 200) {
+    if (res && res->status == 200)
+    {
         std::string response_data = res->body;
         Json::CharReaderBuilder reader;
         Json::Value json;
         std::istringstream s(response_data);
         std::string errs;
 
-        if (Json::parseFromStream(reader, s, &json, &errs)) {
+        if (Json::parseFromStream(reader, s, &json, &errs))
+        {
             k_prime = base64Decode(json["k_prime"].asString());
             MK = base64Decode(json["MK"].asString());
 
-            // ±£´æÊý¾Ýµ½ÎÄ¼þ
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½ï¿½Ä¼ï¿½
             Json::Value saveData;
             saveData["k_prime"] = json["k_prime"];
             saveData["MK"] = json["MK"];
@@ -32,136 +35,166 @@ void setupServerData() {
 
             std::cout << "Server setup complete. Data saved to server_data.json." << std::endl;
         }
-        else {
+        else
+        {
             std::cerr << "Error parsing JSON from Trust Center: " << errs << std::endl;
         }
     }
-    else {
+    else
+    {
         std::cerr << "Failed to connect to Trust Center!" << std::endl;
     }
 }
 
 #include <thread>
 
-// Æô¶¯·þÎñÆ÷£º´¦Àí Client ÇëÇó
-void updateServer() {
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Client ï¿½ï¿½ï¿½ï¿½
+void updateServer()
+{
     int l = 0;
-    while (true) {
-        try {
+    while (true)
+    {
+        try
+        {
             std::string k_prime;
             std::string MK;
 
-            // ³¢ÊÔ¼ÓÔØÊý¾Ý
+            // ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             std::ifstream ifs("server_data.json");
-            if (ifs.is_open()) {
+            if (ifs.is_open())
+            {
                 Json::CharReaderBuilder reader;
                 Json::Value savedData;
                 std::string errs;
 
-                if (Json::parseFromStream(reader, ifs, &savedData, &errs)) {
+                if (Json::parseFromStream(reader, ifs, &savedData, &errs))
+                {
                     k_prime = base64Decode(savedData["k_prime"].asString());
                     MK = base64Decode(savedData["MK"].asString());
-					if (savedData.isMember("l")) {
-						l = savedData["l"].asInt() + 1;
-					}
-					else {
-						l = 1;
-					}
+                    if (savedData.isMember("l"))
+                    {
+                        l = savedData["l"].asInt() + 1;
+                    }
+                    else
+                    {
+                        l = 1;
+                    }
                     std::cout << "Server data loaded successfully." << std::endl;
                 }
-                else {
+                else
+                {
                     throw std::runtime_error("Error parsing server_data.json: " + errs);
                 }
-                ifs.close(); // ¹Ø±ÕÎÄ¼þ
+                ifs.close(); // ï¿½Ø±ï¿½ï¿½Ä¼ï¿½
             }
-            else {
+            else
+            {
                 throw std::runtime_error("Failed to open server_data.json.");
             }
 
+            // ä¿å­˜æ›´æ–°åŽçš„ l å€¼å›žæ–‡ä»¶
+            Json::Value updatedData;
+            updatedData["k_prime"] = base64Encode(k_prime);
+            updatedData["MK"] = base64Encode(MK);
+            updatedData["l"] = l;
 
-            // ´¦Àí Dic1.json ÎÄ¼þ
-            Json::Value dic1Data;
-            std::ifstream ifsDic1("Dic1.json");
+            std::ofstream ofs("server_data.json");
+            if (ofs.is_open()) {
+                Json::StreamWriterBuilder writer_01;
+                ofs << Json::writeString(writer_01, updatedData);
+                ofs.close();
+                std::cout << "Updated 'l' value saved to server_data.json: " << l << std::endl;
+            }
+            else {
+                std::cerr << "Failed to open server_data.json for writing!" << std::endl;
+            }
 
-            if (!ifsDic1.is_open()) {
-                // Èç¹û Dic1.json ÎÄ¼þ²»´æÔÚ£¬Ôò´´½¨²¢³õÊ¼»¯ÎªÒ»¸ö¿ÕµÄ JSON ¶ÔÏó
-                std::cout << "Dic1.json not found, creating a new empty file." << std::endl;
-                dic1Data = Json::Value(Json::objectValue); // ´´½¨Ò»¸ö¿ÕµÄ JSON ¶ÔÏó
-                std::ofstream ofsDic1("Dic1.json");
-                if (ofsDic1.is_open()) {
+            // ï¿½ï¿½ï¿½ï¿½ Dic2.json ï¿½Ä¼ï¿½
+            Json::Value dic2Data;
+            std::ifstream ifsDic2("Dic2.json");
+
+            if (!ifsDic2.is_open())
+            {
+                // ï¿½ï¿½ï¿½ Dic2.json ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ò´´½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ÎªÒ»ï¿½ï¿½ï¿½Õµï¿½ JSON ï¿½ï¿½ï¿½ï¿½
+                std::cout << "Dic2.json not found, creating a new empty file." << std::endl;
+                dic2Data = Json::Value(Json::objectValue); // ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Õµï¿½ JSON ï¿½ï¿½ï¿½ï¿½
+                std::ofstream ofsDic2("Dic2.json");
+                if (ofsDic2.is_open())
+                {
                     Json::StreamWriterBuilder writer;
-                    ofsDic1 << Json::writeString(writer, dic1Data);
-                    ofsDic1.close();
-                    std::cout << "Created empty Dic1.json." << std::endl;
+                    ofsDic2 << Json::writeString(writer, dic2Data);
+                    ofsDic2.close();
+                    std::cout << "Created empty Dic2.json." << std::endl;
                 }
-                else {
-                    std::cerr << "Failed to create Dic1.json." << std::endl;
+                else
+                {
+                    std::cerr << "Failed to create Dic2.json." << std::endl;
                     return;
                 }
             }
-            ifsDic1.close();
-            
+            ifsDic2.close();
 
-            // ÉèÖÃ·þÎñÆ÷
+            // ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½
             httplib::Server svr;
 
-            svr.Post("/send_conn_indop_data", [&dic1Data](const httplib::Request& req, httplib::Response& res) {
-                // Ê¹ÓÃ JsonCpp ½âÎö½ÓÊÕµ½µÄ JSON Êý¾Ý
+            svr.Post("/send_conn_indop_data", [&dic2Data](const httplib::Request &req, httplib::Response &res)
+                     {
+                // Ê¹ï¿½ï¿½ JsonCpp ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ JSON ï¿½ï¿½ï¿½ï¿½
                 Json::Value jsonData;
                 Json::Reader reader;
 
-                // ³¢ÊÔ½âÎöÇëÇóÌåÖÐµÄ JSON Êý¾Ý
+                // ï¿½ï¿½ï¿½Ô½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ JSON ï¿½ï¿½ï¿½ï¿½
                 if (reader.parse(req.body, jsonData)) {
-                    // ´òÓ¡½ÓÊÕµ½µÄÊý¾Ý
+                    // ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     std::cout << "Received data from client: " << req.body << std::endl;
 
-                    // ±éÀú²¢´¦Àí connectorData
+                    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ connectorData
 
 
                         for (const auto& item : jsonData) {
                             std::string connector_key = base64Decode(item["connector_key"].asString());
                             std::string connector_value = base64Decode(item["connector_value"].asString());
 
-                            // ½« connector_key ºÍ connector_value ×ªÎª Base64 ×Ö·û´®
+                            // ï¿½ï¿½ connector_key ï¿½ï¿½ connector_value ×ªÎª Base64 ï¿½Ö·ï¿½ï¿½ï¿½
                             std::string connector_key_str = base64Encode(connector_key);
                             std::string connector_value_str = base64Encode(connector_value);
 
-                            // ½« Base64 ±àÂëµÄ×Ö·û´®×÷Îª¼üÖµ¶Ô±£´æµ½ dic1Data
-                            dic1Data[connector_key_str] = connector_value_str;
+                            // ï¿½ï¿½ Base64 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Öµï¿½Ô±ï¿½ï¿½æµ½ dic2Data
+                            dic2Data[connector_key_str] = connector_value_str;
                         }
 
 
-                    // ±éÀú²¢´¦Àí indopData
+                    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ indopData
 
 
                         for (const auto& item : jsonData) {
                             std::string indop_key = base64Decode(item["indop_key"].asString());
                             std::string indop_value = base64Decode(item["indop_value"].asString());
 
-                            // ½« indop_key ºÍ indop_value ×ªÎª Base64 ×Ö·û´®
+                            // ï¿½ï¿½ indop_key ï¿½ï¿½ indop_value ×ªÎª Base64 ï¿½Ö·ï¿½ï¿½ï¿½
                             std::string indop_key_str = base64Encode(indop_key);
                             std::string indop_value_str = base64Encode(indop_value);
 
-                            // ½« Base64 ±àÂëµÄ×Ö·û´®×÷Îª¼üÖµ¶Ô±£´æµ½ dic1Data
-                            dic1Data[indop_key_str] = indop_value_str;
+                            // ï¿½ï¿½ Base64 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Öµï¿½Ô±ï¿½ï¿½æµ½ dic1Data
+                            dic2Data[indop_key_str] = indop_value_str;
                         }
 
 
                     std::cout << "Saving data..." << std::endl;
 
-                    // ±£´æ dic1Data µ½ Dic1.json
-                    std::ofstream ofsDic1("Dic1.json");
-                    if (ofsDic1.is_open()) {
+                    // ï¿½ï¿½ï¿½ï¿½ dic1Data ï¿½ï¿½ Dic1.json
+                    std::ofstream ofsDic2("Dic2.json");
+                    if (ofsDic2.is_open()) {
                         Json::StreamWriterBuilder writer;
-                        ofsDic1 << Json::writeString(writer, dic1Data);
-                        ofsDic1.close();
-                        std::cout << "Data saved to Dic1.json successfully." << std::endl;
+                        ofsDic2 << Json::writeString(writer, dic2Data);
+                        ofsDic2.close();
+                        std::cout << "Data saved to Dic2.json successfully." << std::endl;
                     }
                     else {
-                        std::cerr << "Failed to open Dic1.json for writing." << std::endl;
+                        std::cerr << "Failed to open Dic2.json for writing." << std::endl;
                     }
 
-                    // ·µ»Ø³É¹¦ÏìÓ¦
+                    // ï¿½ï¿½ï¿½Ø³É¹ï¿½ï¿½ï¿½Ó¦
                     res.set_content("Data received and saved successfully.", "text/plain");
                     return;
                 }
@@ -169,140 +202,211 @@ void updateServer() {
                     std::cerr << "Failed to parse JSON data: " << req.body << std::endl;
                     res.status = 400;
                     res.set_content("Invalid JSON format.", "text/plain");
-                }
-                });
+                } });
 
-            // Æô¶¯·þÎñÆ÷
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             svr.listen("127.0.0.1", 9001);
         }
-        catch (const std::exception& e) {
+        catch (const std::exception &e)
+        {
             std::cerr << "Error: " << e.what() << std::endl;
         }
     }
 }
 
-void handleSearch(const httplib::Request& req, httplib::Response& res) {
-    vector<string> searchTokens;
-    try {
-        Json::CharReaderBuilder reader;
-        Json::Value root;
-        std::string errs;
 
-        // ½âÎöÊÕµ½µÄ JSON Êý¾Ý
-        std::istringstream ss(req.body);
-        if (Json::parseFromStream(reader, ss, &root, &errs)) {
-            // »ñÈ¡ tokens Êý×é
-            const Json::Value tokens = root["tokens"];
-            for (const auto& token : tokens) {
-                searchTokens.push_back(token.asString());
-                std::cout << "Received token: " << token.asString() << std::endl;
-            }
-
-            // ·µ»ØÏìÓ¦
-            res.set_content("Received search tokens", "text/plain");
-        }
-        else {
-            res.status = 400;  // Bad request
-            res.set_content("Invalid JSON", "text/plain");
-        }
-    }
-    catch (const std::exception& e) {
-        res.status = 500;  // Internal server error
-        res.set_content("Server error", "text/plain");
-    }
-
-    // ´¦ÀíËÑË÷ÁîÅÆ
-    map <string, string> Dic1;
-
-    // ´ò¿ª Dic1.json ÎÄ¼þ
-    std::ifstream ifs("Dic1.json");
-
-    if (!ifs.is_open()) {
-        std::cerr << "Failed to open Dic1.json!" << std::endl;
-        return;
-    }
-
-    // Ê¹ÓÃ JsonCpp ½âÎöÎÄ¼þÄÚÈÝ
-    Json::CharReaderBuilder reader;
-    Json::Value dic1Data;
-    std::string errs;
-
-    // ½âÎö JSON Êý¾Ý
-    if (Json::parseFromStream(reader, ifs, &dic1Data, &errs)) {
-        std::cout << "Dic1.json data loaded successfully." << std::endl;
-
-        // ´òÓ¡ËùÓÐ¼üÖµ¶Ô
-        for (const auto& key : dic1Data.getMemberNames()) {
-            Dic1[key] = dic1Data[key].asString();
-        }
-    }
-    else {
-        std::cerr << "Error parsing Dic1.json: " << errs << std::endl;
-    }
-    ifs.close();  // ¹Ø±ÕÎÄ¼þ
-
-    int l = 0;
-    // ¼ì²éÎÄ¼þÊÇ·ñ´æÔÚ£¬¼ÓÔØÊý¾Ý
-    std::ifstream sifs("server_data.json");
-    if (sifs.is_open()) {
-        Json::CharReaderBuilder reader;
-        Json::Value savedData;
-        std::string errs;
-        if (Json::parseFromStream(reader, sifs, &savedData, &errs)) {
-            if (savedData.isMember("l")) {
-                l = savedData["l"].asInt();
-            }
-        }
-        sifs.close(); // ¹Ø±ÕÎÄ¼þ
-    }
-
-
+void searchServer()
+{
+    httplib::Server svr;
 
     std::vector<std::pair<std::vector<string>, int>> Rsearch;
-    int DB = 0;
-    std::string stwjvll;
-    for (const auto& token : searchTokens) {
-        string stwjvl = token;
-        while (stwjvl.size() > 0) {
-            string connector_key = h1(stwjvl, 1);
-            string connector_value = Dic1[connector_key];
-            string tmp1 = xorKeys(h2(stwjvl), connector_value);
-            if (tmp1.length() >= 4) {
-                std::string firstFour = tmp1.substr(0, 4);
-                DB = byteStringToInt(firstFour);
-                // »ñÈ¡Ê£Óà²¿·Ö×÷Îª st
-                stwjvll = tmp1.substr(4);
 
-                // Êä³ö½á¹û
-                std::cout << "Front part (as int): " << DB << std::endl;
-                std::cout << "Remaining part (st): " << stwjvll << std::endl;
-            }
-            else {
-                std::cerr << "Error: connector_value is too short." << std::endl;
-            }
-
-            vector<string> Rwjvl;
-            std::string indopwjvlm;
-            for (int i = 1; i <= DB; i++)
+    svr.Post("/search", [&Rsearch](const httplib::Request& req, httplib::Response& res)
+        {
+            vector<string> searchTokens;
+            try
             {
-                string indop_key = h34(stwjvl, i, 3);
-                string indop_value = Dic1[indop_key];
-                string tmp2 = xorKeys(h34(stwjvl, i, 4), indop_value);
-                if (tmp2.length() >= 4) {
-                    std::string firstFour = tmp2.substr(0, 4);
-                    indopwjvlm = tmp2.substr(4);
+                Json::CharReaderBuilder reader;
+                Json::Value root;
+                std::string errs;
+
+                // ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ JSON ï¿½ï¿½ï¿½ï¿½
+                std::istringstream ss(req.body);
+                if (Json::parseFromStream(reader, ss, &root, &errs))
+                {
+                    // ï¿½ï¿½È¡ tokens ï¿½ï¿½ï¿½ï¿½
+                    const Json::Value tokens = root["tokens"];
+                    for (const auto& token : tokens)
+                    {
+                        searchTokens.push_back(base64Decode(token.asString()));
+                        std::cout << "Received token: " << token.asString() << std::endl;
+                    }
+
+                    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦
+                    res.set_content("Received search tokens", "text/plain");
                 }
-                Rwjvl.push_back(indopwjvlm);
+                else
+                {
+                    res.status = 400; // Bad request
+                    res.set_content("Invalid JSON", "text/plain");
+                }
             }
-            Rsearch.push_back(std::make_pair(Rwjvl, l));
-            stwjvl = stwjvll;
+            catch (const std::exception& e)
+            {
+                res.status = 500; // Internal server error
+                res.set_content("Server error", "text/plain");
+            }
+
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            map<string, string> Dic2;
+
+            // ï¿½ï¿½ Dic2.json ï¿½Ä¼ï¿½
+            std::ifstream ifs("Dic2.json");
+
+            if (!ifs.is_open())
+            {
+                std::cerr << "Failed to open Dic2.json!" << std::endl;
+                return;
+            }
+
+            // Ê¹ï¿½ï¿½ JsonCpp ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½
+            Json::CharReaderBuilder reader;
+            Json::Value dic2Data;
+            std::string errs;
+
+            // ï¿½ï¿½ï¿½ï¿½ JSON ï¿½ï¿½ï¿½ï¿½
+            if (Json::parseFromStream(reader, ifs, &dic2Data, &errs))
+            {
+                std::cout << "Dic2.json data loaded successfully." << std::endl;
+
+                // ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½Ð¼ï¿½Öµï¿½ï¿½
+                for (const auto& key : dic2Data.getMemberNames())
+                {
+                    Dic2[key] = dic2Data[key].asString();
+                }
+            }
+            else
+            {
+                std::cerr << "Error parsing Dic2.json: " << errs << std::endl;
+            }
+            ifs.close(); // ï¿½Ø±ï¿½ï¿½Ä¼ï¿½
+
+            int l = 0;
+            // ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ç·ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            std::ifstream sifs("server_data.json");
+            if (sifs.is_open())
+            {
+                Json::CharReaderBuilder reader;
+                Json::Value savedData;
+                std::string errs;
+                if (Json::parseFromStream(reader, sifs, &savedData, &errs))
+                {
+                    if (savedData.isMember("l"))
+                    {
+                        l = savedData["l"].asInt();
+                    }
+                }
+                sifs.close(); // ï¿½Ø±ï¿½ï¿½Ä¼ï¿½
+            }
+
+            //std::vector<std::pair<std::vector<string>, int>> Rsearch;
+            int DB = 0;
+            std::string stwjvll = "";
+            for (const auto& token : searchTokens)
+            {
+                string stwjvl = token;
+                while (stwjvl.size() > 0)
+                {
+                    int flag1 = 0;
+                    for (char c : stwjvl) {
+                        if (c != '\0') {
+                            flag1++;
+                        }
+                    }
+                    if (flag1 == 0) {
+                        break;
+                    }
+                    flag1 = 0;
+                    string connector_key = h1(stwjvl, 1);
+                    cout << "connector_key" << connector_key << endl;
+                    cout << base64Encode(connector_key) << endl;
+                    string connector_value = base64Decode(Dic2[base64Encode(connector_key)]);
+                    cout << "connector_value" << connector_value << endl;
+                    string tmp1 = xorKeys(h2(stwjvl), connector_value);
+                    if (tmp1.length() >= 4)
+                    {
+                        std::string firstFour = tmp1.substr(0, 4);
+                        DB = stringToInt(firstFour);
+                        // ï¿½ï¿½È¡Ê£ï¿½à²¿ï¿½ï¿½ï¿½ï¿½Îª st
+                        stwjvll = tmp1.substr(4);
+
+                        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                        std::cout << "Front part (as int): " << DB << std::endl;
+                        std::cout << "Remaining part (st): " << stwjvll << std::endl;
+                    }
+                    else
+                    {
+                        std::cerr << "Error: connector_value is too short." << std::endl;
+                    }
+
+                    vector<string> Rwjvl;
+                    std::string indopwjvlm;
+                    for (int i = 0; i < DB; ++i)
+                    {
+                        cout << " m = " << i << endl;
+                        string indop_key = h34(stwjvl, i, 3);
+                        string indop_value = base64Decode(Dic2[base64Encode(indop_key)]);
+                        string indopwjvlm = xorKeys(h34(stwjvl, i, 4), indop_value);
+                        //if (tmp2.length() >= 4)
+                        //{
+                        //    std::string firstFour = tmp2.substr(0, 28);
+                        //    indopwjvlm = tmp2.substr(4);
+                        //}
+
+                        cout << "Ræ–°å¢ž indopwjvlm BASE64: " << indopwjvlm << endl;
+
+						cout << "indopwjvlm.size():" << indopwjvlm.size() << endl;
+
+                        Rwjvl.push_back( base64Encode(indopwjvlm));
+                    }
+                    Rsearch.push_back(std::make_pair(Rwjvl, l));
+                    stwjvl = stwjvll;
+                    l--;
+                }
+                // sendRsearchtoClient and BC
+
+            //    httplib::Server svr;
+
+            //    svr.Get("/send_Rsearch_Request", [&](const httplib::Request &, httplib::Response &res)
+            //            {
+                        //cout << "Received Rsearch Request" << endl;
+            //        Json::Value root(Json::arrayValue);
+            //        for (const auto& pair : Rsearch) {
+            //            Json::Value item;
+            //            Json::Value strArray(Json::arrayValue);
+            //            for (const auto& str : pair.first) {
+            //                strArray.append(str);
+            //            }
+            //            item["R"] = strArray;
+            //            item["l"] = pair.second;  // ï¿½ï¿½Îªï¿½Ö·ï¿½ï¿½ï¿½ï¿½æ´¢
+            //            root.append(item);
+            //        }
+            //        Json::StreamWriterBuilder writer;
+            //        std::string response_data = Json::writeString(writer, root);
+
+            //        res.set_content(response_data, "application/json");
+            //        std::cout << "Sent R data to Client." << std::endl; });
+            //    std::cout << "Server running at http://localhost:9008..." << std::endl;
+            //    svr.listen("localhost", 9008);
+            }
         }
-        //sendRsearchtoClient and BC
+    );
+    // sendRsearchtoClient and BC
 
-        httplib::Server svr;
 
-
-        svr.Get("/send_Rsearch_Request", [&](const httplib::Request&, httplib::Response& res) {
+    svr.Get("/send_Rsearch_Request", [&Rsearch](const httplib::Request&, httplib::Response& res)
+        {
+            cout << "Received Rsearch Request" << endl;
             Json::Value root(Json::arrayValue);
             for (const auto& pair : Rsearch) {
                 Json::Value item;
@@ -311,27 +415,16 @@ void handleSearch(const httplib::Request& req, httplib::Response& res) {
                     strArray.append(str);
                 }
                 item["R"] = strArray;
-                item["l"] = pair.second;  // ×÷Îª×Ö·û´®´æ´¢
+                item["l"] = pair.second;  // ï¿½ï¿½Îªï¿½Ö·ï¿½ï¿½ï¿½ï¿½æ´¢
                 root.append(item);
             }
             Json::StreamWriterBuilder writer;
             std::string response_data = Json::writeString(writer, root);
 
             res.set_content(response_data, "application/json");
-            std::cout << "Sent data to Client." << std::endl;
-            });
-        std::cout << "Server running at http://localhost:9001..." << std::endl;
-        svr.listen("localhost", 9001);
-    }
-
-}
-
-void searchServer() {
-    httplib::Server svr;
-
-    svr.Post("/search", handleSearch);
-
+            std::cout << "Sent R data to Client." << std::endl; });
+    //std::cout << "Server running at http://localhost:9008..." << std::endl;
+    //svr.listen("localhost", 9008);
     std::cout << "Server running at http://localhost:9001..." << std::endl;
     svr.listen("localhost", 9001);
 }
-

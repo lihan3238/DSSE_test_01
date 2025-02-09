@@ -5,13 +5,14 @@
 //#include "client.h"
 //#include "trust_center.h"
 
-int main() {
+int main1332() {
 	//startTrustCenter(LAMBDA, BLOOM_SIZE);
 	int switcher = 1;
 	while (switcher)
 	{
 		cout << "1. Setup Server Data" << endl;
 		cout << "2. Start Server" << endl;
+		cout << "3. Search" << endl;
 		cin >> switcher;
 		switch (switcher)
 		{
@@ -30,3 +31,4 @@ int main() {
 
 	return 0;
 }
+
