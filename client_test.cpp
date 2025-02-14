@@ -1,12 +1,13 @@
 #include <httplib.h>
 #include <iostream>
-//#include <thread>
-//#include "server.h"
+// #include <thread>
+// #include "server.h"
 #include "client.h"
-//#include "trust_center.h"
+// #include "trust_center.h"
 
-int main2331() {
-	//startTrustCenter(LAMBDA, BLOOM_SIZE);
+int main2331()
+{
+	// startTrustCenter(LAMBDA, BLOOM_SIZE);
 	int switcher = 1;
 	while (switcher)
 	{
@@ -23,7 +24,7 @@ int main2331() {
 			updateClient();
 			break;
 		case 3:
-			
+
 			cout << "Enter how many words" << endl;
 			int q = 0;
 			cin >> q;
@@ -34,17 +35,17 @@ int main2331() {
 
 			std::vector<std::string> Words;
 
-			for (int i = 0; i < q; i++) {
+			for (int i = 0; i < q; i++)
+			{
 				std::string word;
-				std::cin >> word;      // ¶ÁÈ¡Ò»¸öµ¥´Ê
-				Words.push_back(word);  // ½«¸Ãµ¥´ÊÌí¼Óµ½ Words ÏòÁ¿ÖÐ
+				std::cin >> word;	   // ï¿½ï¿½È¡Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				Words.push_back(word); // ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ Words ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			}
 
-			searchClient(searchToken(Words,Q,q),Q,q);
+			searchClient(searchToken(Words, Q, q), Q, q);
 			break;
 		}
 	}
-
 
 	return 0;
 }
