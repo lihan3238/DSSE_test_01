@@ -5,7 +5,7 @@
 !*.json
 !*.cpp
 !*.h
-!/x64/Release/*/*
+!app_test/
 
 # 例外规则：允许 .gitignore 文件自身被追踪
 !.gitignore
