@@ -5,7 +5,9 @@
 !*.json
 !*.cpp
 !*.h
-!app_test/*
+!app_test/*.exe
+!app_test/*.json
+!app_test/*.dll
 # 例外规则：允许 .gitignore 文件自身被追踪
 !.gitignore
 !*.md
