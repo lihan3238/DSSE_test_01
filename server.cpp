@@ -52,8 +52,8 @@ void setupServerData()
 void updateServer()
 {
     int l = 0;
-    while (true)
-    {
+    //while (true)
+    //{
         try
         {
             std::string k_prime;
@@ -137,7 +137,7 @@ void updateServer()
             // ���÷�����
             httplib::Server svr;
 
-            svr.Post("/send_conn_indop_data", [&dic2Data](const httplib::Request &req, httplib::Response &res)
+            svr.Post("/send_conn_indop_data", [&dic2Data, &svr](const httplib::Request &req, httplib::Response &res)
                      {
                 // ʹ�� JsonCpp �������յ��� JSON ����
                 Json::Value jsonData;
@@ -196,7 +196,8 @@ void updateServer()
 
                     // ���سɹ���Ӧ
                     res.set_content("Data received and saved successfully.", "text/plain");
-                    return;
+                    svr.stop();
+                    //return;
                 }
                 else {
                     std::cerr << "Failed to parse JSON data: " << req.body << std::endl;
@@ -211,7 +212,7 @@ void updateServer()
         {
             std::cerr << "Error: " << e.what() << std::endl;
         }
-    }
+   // }
 }
 
 
@@ -311,9 +312,11 @@ void searchServer()
 
             //std::vector<std::pair<std::vector<string>, int>> Rsearch;
             int DB = 0;
+			int l0 = l;
             std::string stwjvll = "";
             for (const auto& token : searchTokens)
             {
+                l = l0;
                 string stwjvl = token;
                 while (stwjvl.size() > 0)
                 {
@@ -349,7 +352,7 @@ void searchServer()
                         std::cerr << "Error: connector_value is too short." << std::endl;
                     }
 
-                    vector<string> Rwjvl;
+                    vector<string> Rwjvl = {};
                     std::string indopwjvlm;
                     for (int i = 0; i < DB; ++i)
                     {
@@ -404,7 +407,7 @@ void searchServer()
     // sendRsearchtoClient and BC
 
 
-    svr.Get("/send_Rsearch_Request", [&Rsearch](const httplib::Request&, httplib::Response& res)
+    svr.Get("/send_Rsearch_Request", [&Rsearch, &svr](const httplib::Request&, httplib::Response& res)
         {
             cout << "Received Rsearch Request" << endl;
             Json::Value root(Json::arrayValue);
@@ -422,7 +425,9 @@ void searchServer()
             std::string response_data = Json::writeString(writer, root);
 
             res.set_content(response_data, "application/json");
-            std::cout << "Sent R data to Client." << std::endl; });
+            std::cout << "Sent R data to Client." << std::endl; 
+			svr.stop();
+        });
     //std::cout << "Server running at http://localhost:9008..." << std::endl;
     //svr.listen("localhost", 9008);
     std::cout << "Server running at http://localhost:9001..." << std::endl;

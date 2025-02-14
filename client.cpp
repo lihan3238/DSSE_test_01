@@ -203,6 +203,7 @@ void updateClient() {
         Conn_key = h1(st[Dic1[l]], 1);
 		cout <<" word: "<<word << " st: " << st[Dic1[l]] << " h1(st)(conn_key)= " << h1(st[Dic1[l]], 1) << endl;
         tmp2 = intTo4ByteString(DB);
+        tmp1 = "";
         tmp1.append(tmp2);
         tmp1.append(st[Dic1[l - 1]]);
         Conn_value = xorKeys(h2(st[Dic1[l]]), tmp1);
@@ -608,6 +609,7 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
 
             std::cout << "Received Rsearch data:" << std::endl;
             for (const auto& item : items) {
+                Rwjvl = {};
                 int l = item["l"].asInt();
                 for (const auto& str : item["R"]) {
                     Rwjvl.push_back(str.asString());
