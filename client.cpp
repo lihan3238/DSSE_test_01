@@ -3,6 +3,7 @@
 const int LAMBDA = 256; // 安全参数 λ
 const int BLOOM_SIZE = 256; // 布隆过滤器大小
 const std::string IV = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10"; // IV as string
+vector<string> FileInd = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"};
 
 // Setup 函数：从 Trust Center 获取数据并保存到文件
 void setupClientData() {
@@ -711,6 +712,7 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
         CountingBloomFilter RCBF(3500, 7);
 
         for (const std::string& item : Ind) {
+            //cout << "insert to RCBF: "<<item << endl;
             RCBF.update(item, "addw");
         }
         //send RCBF to bc
@@ -718,25 +720,34 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
         //advice=Verify(RCBF,searchtoken);
         //if(advice==true)
         vector<string> Finalset;
-        for (const std::string& item : Ind) {
+
+
+
+        for (const std::string& item : FileInd) {
             if (Q == "disjunctive")
             {
+                cout << "\n disjunctive :" << endl;
+                cout << "check " << item << endl;
                 if (RCBF.check(item))
                 {
+                    cout << "insert " << item << endl;
                     Finalset.push_back(item);
                 }
             }
             else if (Q == "conjunctive")
             {
+                cout << "\n conjunctive :" << endl;
+                cout << "repeatCheck " << item << endl;
                 if (RCBF.repeatCheck(item, q))
                 {
+                    cout << "insert " << item << endl;
                     Finalset.push_back(item);
                 }
             }
         }
-
+        std::cout << "Final set: " << endl;
         for (const std::string& item : Finalset) {
-            std::cout << "Final set: " << item << std::endl;
+             cout<< item << std::endl;
         }
     }
     }

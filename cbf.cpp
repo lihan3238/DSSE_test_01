@@ -45,9 +45,9 @@ size_t CountingBloomFilter::hash(const std::string& data, size_t index) {
 void CountingBloomFilter::update(const std::string& data, const std::string& op) {
     for (size_t i = 0; i < k; ++i) {
         size_t idx = hash(data, i);
-        if (op == "add") {
+        if (op == "addw") {
             CBF[idx] += 1;
-        } else if (op == "del") {
+        } else if (op == "dele") {
             if (CBF[idx] > 0) {
                 CBF[idx] -= 1;
             }
@@ -70,11 +70,11 @@ bool CountingBloomFilter::repeatCheck(const std::string& data, size_t r) {
     for (size_t i = 0; i < k; ++i) {
         size_t idx = hash(data, i);
         count += CBF[idx];
-        if (count >= r) {
-            return true; // 元素出现次数超过阈值
+        if (count < r) {
+            return false; // 元素出现次数超过阈值
         }
     }
-    return false;
+    return true;
 }
 
 Json::Value CountingBloomFilter::toJson() const {
@@ -144,3 +144,23 @@ CountingBloomFilter CountingBloomFilter::operator+(const CountingBloomFilter& ot
 
     return result;
 }
+
+
+//int main() {
+//
+//	vector<string> Ind = { "a", "b", "c", "d" };
+//    CountingBloomFilter RCBF(3500, 7);
+//
+//    for (const std::string& item : Ind) {
+//        cout << "insert to RCBF: " << item << endl;
+//        RCBF.update(item, "addw");
+//    }
+//	if (RCBF.check("a") == true)
+//	{
+//		cout << "a is in RCBF" << endl;
+//	}
+//	else
+//	{
+//		cout << "a is not in RCBF" << endl;
+//	}
+//}

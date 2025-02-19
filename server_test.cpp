@@ -5,7 +5,7 @@
 //#include "client.h"
 //#include "trust_center.h"
 
-int main() {
+int main156513() {
 	//startTrustCenter(LAMBDA, BLOOM_SIZE);
 	int switcher = 1;
 	while (switcher)
