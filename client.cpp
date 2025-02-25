@@ -4,7 +4,7 @@ const int LAMBDA = 256; // 安全参数 λ
 const int BLOOM_SIZE = 256; // 布隆过滤器大小
 const std::string IV = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10"; // IV as string
 vector<string> FileInd = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"};
-
+//qwq
 // Setup 函数：从 Trust Center 获取数据并保存到文件
 void setupClientData() {
     std::string sk;
@@ -72,6 +72,37 @@ void updateClient() {
         ifs.close(); // 关闭文件
     }
 
+
+// 尝试加载数据
+    Json::Value root;
+    //map <int, string> Dic2;
+
+    // 尝试读取现有数据
+    std::ifstream dic1ifs("Dic1.json");
+    if (dic1ifs.is_open()) {
+        Json::CharReaderBuilder reader;
+        Json::Value root;
+        std::string errs;
+
+        // 读取并解析 JSON 文件内容
+        if (Json::parseFromStream(reader, dic1ifs, &root, &errs)) {
+            for (const auto& item : root.getMemberNames()) {
+                int l = std::stoi(item);
+                Dic1[l] = root[item].asString();
+            }
+            std::cout << "Dic1 data loaded successfully." << std::endl;
+        }
+        else {
+            std::cerr << "Failed to parse Dic1.json: " << errs << std::endl;
+        }
+        dic1ifs.close();
+    }
+    else {
+        std::cout << "Dic1.json does not exist or is empty. Initializing new map." << std::endl;
+    }
+
+
+
     Dic1[l] = generateRandomKey(LAMBDA / 8);
 
     // 保存更新后的 l 值回文件
@@ -124,7 +155,7 @@ void updateClient() {
         return;
     }
 
-    int DB = 0;
+    int DB[10000] = {};
     ifs2.close();
 
     // 遍历 JSON 文件的键并存入 Words 数组
@@ -155,16 +186,16 @@ void updateClient() {
         if (jsonData.isMember(word)) {
             const Json::Value& wordData = jsonData[word];
             std::vector<int> numbers;
-			DB = 0;  // 重置 DB 计数
+			//DB =0 ;  // 重置 DB 计数
             // 获取该单词对应数组的所有元素
             for (const auto& num : wordData) {
                 numbers.push_back(num.asInt());
-                DB++;  // DB计数
+                DB[i]++;  // DB计数
             }
 
             // 将该单词对应的数字列表存入 index
             index[word] = numbers;
-			cout << "geted Word: " << word << ", Numbers: " << "DB: " << DB << endl;
+			cout << "geted Word: " << word << ", Numbers: " << "DB: " << DB[i] << endl;
             for (const auto& num : numbers) {
                 cout << num << " ";
             }
@@ -203,7 +234,7 @@ void updateClient() {
 
         Conn_key = h1(st[Dic1[l]], 1);
 		cout <<" word: "<<word << " st: " << st[Dic1[l]] << " h1(st)(conn_key)= " << h1(st[Dic1[l]], 1) << endl;
-        tmp2 = intTo4ByteString(DB);
+        tmp2 = intTo4ByteString(DB[i]);
         tmp1 = "";
         tmp1.append(tmp2);
         tmp1.append(st[Dic1[l - 1]]);
@@ -293,35 +324,35 @@ void updateClient() {
         std::cerr << "Failed to send Connector data to CS." <<res->status<< std::endl;
     }
 
-    //区块链
-    // 
-    // 尝试加载数据
-    Json::Value root;
-	//map <int, string> Dic2;
+ //   //区块链
+ //   // 
+ //   // 尝试加载数据
+ //   Json::Value root_bc;
+	////map <int, string> Dic2;
 
-    // 尝试读取现有数据
-    std::ifstream dic1ifs("Dic1.json");
-    if (dic1ifs.is_open()) {
-        Json::CharReaderBuilder reader;
-        Json::Value root;
-        std::string errs;
+ //   // 尝试读取现有数据
+ //   std::ifstream dic1ifs_bc("Dic1.json");
+ //   if (dic1ifs.is_open()) {
+ //       Json::CharReaderBuilder reader_bc;
+ //       Json::Value root_bc;
+ //       std::string errs_bc;
 
-        // 读取并解析 JSON 文件内容
-        if (Json::parseFromStream(reader, dic1ifs, &root, &errs)) {
-            for (const auto& item : root.getMemberNames()) {
-                int l = std::stoi(item);
-                Dic1[l] = root[item].asString();
-            }
-            std::cout << "Dic2 data loaded successfully." << std::endl;
-        }
-        else {
-            std::cerr << "Failed to parse Dic2.json: " << errs << std::endl;
-        }
-        dic1ifs.close();
-    }
-    else {
-        std::cout << "Dic2.json does not exist or is empty. Initializing new map." << std::endl;
-    }
+ //       // 读取并解析 JSON 文件内容
+ //       if (Json::parseFromStream(reader_bc, dic1ifs_bc, &root_bc, &errs_bc)) {
+ //           for (const auto& item : root.getMemberNames()) {
+ //               int l_bc = std::stoi(item);
+ //               Dic1[l_bc] = root[item].asString();
+ //           }
+ //           std::cout << "Dic1 data loaded successfully." << std::endl;
+ //       }
+ //       else {
+ //           std::cerr << "Failed to parse Dic1.json: " << errs_bc << std::endl;
+ //       }
+ //       dic1ifs_bc.close();
+ //   }
+ //   else {
+ //       std::cout << "Dic1.json does not exist or is empty. Initializing new map." << std::endl;
+ //   }
 
     // 将 map 数据存入 JSON 对象
     for (const auto& item : Dic1) {
@@ -634,7 +665,7 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
             int l = item.second;
 
 
-            //在l为1，且单关键词情况下
+            //在l为1下
             std::string indopwjvl = "";
              indexNum = 0;
             for (const auto& str : Rwjvl) {

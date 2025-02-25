@@ -28,7 +28,7 @@ int main()
 			cout << "Enter how many words" << endl;
 			int q = 0;
 			cin >> q;
-			cout << "Enter search type(disjunctive,conjuctive)" << endl;
+			cout << "Enter search type(disjunctive,conjunctive)" << endl;
 			string Q = "";
 			cin >> Q;
 			cout << "Enter the word you want to search" << endl;

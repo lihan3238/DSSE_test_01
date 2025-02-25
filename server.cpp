@@ -132,6 +132,18 @@ void updateServer()
                     return;
                 }
             }
+            else
+            {
+                // ��� Dic2.json �ļ������ڣ��򴽾��� JSON ����
+                Json::CharReaderBuilder reader;
+                std::string errs;
+                if (!Json::parseFromStream(reader, ifsDic2, &dic2Data, &errs))
+                {
+                    std::cerr << "Failed to parse Dic2.json: " << errs << std::endl;
+                    return;
+                }
+                std::cout << "Loaded Dic2.json content successfully." << std::endl;
+            }
             ifsDic2.close();
 
             // ���÷�����
