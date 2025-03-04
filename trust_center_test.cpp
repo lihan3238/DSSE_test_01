@@ -42,7 +42,7 @@ const int BLOOM_SIZE = 256; // 布隆过滤器大小
 //    return 0;
 //}
 
-int main13412() {
+int main123451234() {
 	startTrustCenter(LAMBDA, BLOOM_SIZE);
 	return 0;
 }

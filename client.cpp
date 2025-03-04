@@ -2,8 +2,11 @@
 
 const int LAMBDA = 256; // 安全参数 λ
 const int BLOOM_SIZE = 256; // 布隆过滤器大小
+const int BLOOM_HASHES = 700; // 布隆过滤器哈希函数数量
+const int BLOOM_BITS = 350000; // 布隆过滤器位数
+
 const std::string IV = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10"; // IV as string
-vector<string> FileInd = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"};
+//vector<string> FileInd = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"};
 //qwq
 // Setup 函数：从 Trust Center 获取数据并保存到文件
 void setupClientData() {
@@ -51,6 +54,49 @@ void updateClient() {
     std::string sk_prime;
     std::unordered_map<int, std::string> Dic1;
     std::string Words[100];
+    std::string updateFile;
+    std::cout << "请输入更新文件：" << std::endl;
+    std::cin >> updateFile;
+
+    // 尝试打开文件以检查是否存在
+    std::ifstream src(updateFile, std::ios::binary);
+    if (!src) {
+        std::cerr << "错误：文件 " << updateFile << " 不存在，将创建一个新的 update.json 文件！" << std::endl;
+    }
+    else {
+        std::cout << "正在复制文件内容..." << std::endl;
+    }
+
+    // 打开目标文件（update.json），以写入模式
+    std::ofstream dst("update.json", std::ios::binary);
+    if (!dst) {
+        std::cerr << "无法创建或打开目标文件 update.json！" << std::endl;
+        return;
+    }
+
+    // 如果源文件存在，则复制内容
+    if (src) {
+        dst << src.rdbuf();
+        std::cout << "文件内容已复制到 update.json。" << std::endl;
+    }
+    else {
+        std::cout << "新文件 update.json 已创建，当前为空。" << std::endl;
+    }
+
+    // 关闭文件流
+    src.close();
+    dst.close();
+
+    // 确保写入成功
+    std::ifstream check("update.json");
+    if (!check || check.peek() == EOF) {
+        std::cerr << "警告：update.json 可能为空或写入失败！" << std::endl;
+    }
+    else {
+        std::cout << "update.json 写入成功！" << std::endl;
+    }
+    check.close();
+
     int l = 0;
     // 检查文件是否存在，加载数据
     std::ifstream ifs("client_data.json");
@@ -127,8 +173,8 @@ void updateClient() {
     std::string k_prime(sk_prime.size(), '\0');
     f1(k_prime, sk_prime);
 
-	cout << "sk'= " << sk_prime << endl;
-	cout << "k'= " << k_prime << endl;
+    //qwqstd::cout << "sk'= " << sk_prime << endl;
+    //qwqstd::cout << "k'= " << k_prime << endl;
 
     std::string tmp1;
     std::string tmp2;
@@ -195,11 +241,11 @@ void updateClient() {
 
             // 将该单词对应的数字列表存入 index
             index[word] = numbers;
-			cout << "geted Word: " << word << ", Numbers: " << "DB: " << DB[i] << endl;
-            for (const auto& num : numbers) {
-                cout << num << " ";
-            }
-			cout << endl;
+            //qwqstd::cout << "geted Word: " << word << ", Numbers: " << "DB: " << DB[i] << endl;
+            //qwqfor (const auto& num : numbers) {
+            //qwq    std::cout << num << " ";
+            //qwq}
+            //qwqstd::cout << endl;
 
         }
     }
@@ -218,11 +264,11 @@ void updateClient() {
         k = word;
         f1(k, sk);
 
-		cout << "k: " << k << endl;
+        //qwqstd::cout << "k: " << k << endl;
 
-        cout << "l: " << l << endl;
+        //qwqstd::cout << "l: " << l << endl;
 
-        cout << "Dic1[l]: " << Dic1[l] << endl;
+        //qwqstd::cout << "Dic1[l]: " << Dic1[l] << endl;
 
         if (Dic1[l - 1].empty()) {
             st[Dic1[l]] = {}; // question
@@ -233,29 +279,29 @@ void updateClient() {
         st[Dic1[l]] = xorKeys(xorKeys(Dic1[l], k), k_prime);
 
         Conn_key = h1(st[Dic1[l]], 1);
-		cout <<" word: "<<word << " st: " << st[Dic1[l]] << " h1(st)(conn_key)= " << h1(st[Dic1[l]], 1) << endl;
+        //qwqstd::cout <<" word: "<<word << " st: " << st[Dic1[l]] << " h1(st)(conn_key)= " << h1(st[Dic1[l]], 1) << endl;
         tmp2 = intTo4ByteString(DB[i]);
         tmp1 = "";
         tmp1.append(tmp2);
         tmp1.append(st[Dic1[l - 1]]);
         Conn_value = xorKeys(h2(st[Dic1[l]]), tmp1);
 
-		cout << " h2(st): " << h2(st[Dic1[l]]) << " DB(word)|||stl - 1: " <<tmp2<<" + "<< st[Dic1[l - 1]]<<" -> "<<tmp1 << " Conn_value(h2(st) xor DB(word)|||stl - 1) : " << Conn_value << endl;
+        //qwqstd::cout << " h2(st): " << h2(st[Dic1[l]]) << " DB(word)|||stl - 1: " <<tmp2<<" + "<< st[Dic1[l - 1]]<<" -> "<<tmp1 << " Conn_value(h2(st) xor DB(word)|||stl - 1) : " << Conn_value << endl;
 
         connectorData[Conn_key] = Conn_value;
 
         std::string skey = f2(Dic1[l], sk, 32);
 
-        cout << "!!!!!!!skey= Dic1[ " << l << " ] ( " << Dic1[l] << " ),sk( " << sk << " )" << endl;
+        //qwqstd::cout << "!!!!!!!skey= Dic1[ " << l << " ] ( " << Dic1[l] << " ),sk( " << sk << " )" << endl;
 
-		cout << "skey: " << skey << endl;
+        //qwqstd::cout << "skey: " << skey << endl;
 
         // 构造 CBFj,vl
-        CountingBloomFilter CBFj_vl(3500, 7);
+        CountingBloomFilter CBFj_vl(BLOOM_BITS, BLOOM_HASHES);
         std::string tmp3;
 
         for (size_t m = 0; m < index[word].size(); ++m) {
-			cout << "m: " << m << " index[word][m]: " << index[word][m] << endl;
+            //qwqstd::cout << "m: " << m << " index[word][m]: " << index[word][m] << endl;
             std::string indwj_vl_m = intTo28ByteString(index[word][m]);
 
             std::string opwj_vl_m = "addw"; // 假定操作类型为 addw
@@ -266,24 +312,24 @@ void updateClient() {
             // 生成加密的 indopwj_vl,m
             tmp3.append(indwj_vl_m);
 
-			cout << "indwj_vl_m: " << indwj_vl_m << " opwj_vl_m: " << opwj_vl_m << " tmp3: " << tmp3 << endl;
+            //qwqstd::cout << "indwj_vl_m: " << indwj_vl_m << " opwj_vl_m: " << opwj_vl_m << " tmp3: " << tmp3 << endl;
 
-			cout << " size of tmp3: " << tmp3.size() << endl;
+            //qwqstd::cout << " size of tmp3: " << tmp3.size() << endl;
 
             std::string indopwj_vl_m = aesEncrypt(tmp3, skey, IV);
 
-			cout << "indopwj_vl_m: " << indopwj_vl_m << endl;
+            //qwqstd::cout << "indopwj_vl_m: " << indopwj_vl_m << endl;
 
             // 生成 indop_key 和 indop_value
             std::string indop_key = h34(st[Dic1[l]], m, 3);
 
-			cout << "indop_key: " << indop_key << endl;
+            //qwqstd::cout << "indop_key: " << indop_key << endl;
 
             std::string indop_value = xorKeys(h34(st[Dic1[l]], m, 4), indopwj_vl_m);
 
-            cout << "h4(st) : " << h34(st[Dic1[l]], m, 4) << endl;
+            //qwqstd::cout << "h4(st) : " << h34(st[Dic1[l]], m, 4) << endl;
 
-			cout << "indop_value: " << indop_value << endl;
+            //qwqstd::cout << "indop_value: " << indop_value << endl;
 
             indopData[indop_key] = indop_value;
         }
@@ -391,7 +437,7 @@ void updateClient() {
 
                         // 将 data 转换为 CountingBloomFilter 的格式
                         if (cbf_data.isArray()) {
-                            CountingBloomFilter cbf(3500, 7);
+                            CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
                             std::string serialized_data;
 
                             for (const auto& value : cbf_data) {
@@ -423,7 +469,7 @@ void updateClient() {
         for (const auto& item : Up) {
             std::string k = get<0>(item);
             int l = get<1>(item);
-			CountingBloomFilter CBFjStr(3500, 7);
+			CountingBloomFilter CBFjStr(BLOOM_BITS, BLOOM_HASHES);
 			CBFjStr = get<2>(item);
 
             // Step 1: Set Dic1[l] = vl
@@ -442,7 +488,7 @@ void updateClient() {
             // Step 4: Create trapdoor (the method depends on encryption logic)
             std::string trapdoor = stwjvl;
             int ctr = l;
-            CountingBloomFilter CBFj(3500, 7);
+            CountingBloomFilter CBFj(BLOOM_BITS, BLOOM_HASHES);
             while (ctr >= 1) {
                 ctr--;
                 vl = Dic1[ctr];
@@ -548,7 +594,7 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
         std::string k = word;
         f1(k, sk); // 再次加密
         searchTokens.push_back(xorKeys(xorKeys(k, k_prime), vl)); // 生成搜索令牌
-		cout << searchTokens[0] << endl;
+		std::cout << searchTokens[0] << endl;
     }
 
     return searchTokens; // 返回处理后的搜索令牌
@@ -556,6 +602,9 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
 
 
 void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
+
+    size_t startInd=0;
+    size_t endInd = 0;
 
     map <int, string> Dic1;
 
@@ -619,12 +668,12 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
 
 
 	//request
-	cout << "/send_Rsearch_Request" << endl;
+	std::cout << "/send_Rsearch_Request" << endl;
 
     //httplib::Client cli1("http://127.0.0.1:9008");
     //auto res1 = cli1.Get("/send_Rsearch_Request");
     auto res1 = cli.Get("/send_Rsearch_Request");
-	cout << "res1->status: " << res1->status << endl;
+	std::cout << "res1->status: " << res1->status << endl;
 
     std::vector<std::pair<std::vector<string>, int>> Rsearch;
     std::vector<string> Rwjvl;
@@ -647,10 +696,10 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
                     Rwjvl.push_back(str.asString());
                 }
                 Rsearch.push_back(std::make_pair(Rwjvl, l));
-                std::cout << "l: " << l << endl;
-                for (const auto& str : Rwjvl) {
-                    std::cout << "Rwjvl: " << str << std::endl;
-                }
+                //qwqstd::cout << "l: " << l << endl;
+                //qwqfor (const auto& str : Rwjvl) {
+                //qwq    std::cout << "Rwjvl: " << str << std::endl;
+                //qwq}
             }
         }
         else {
@@ -691,35 +740,35 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
                 //std::string k = xorKeys(xorKeys(st, k_prime), Dic1[l]);
                 std::string skey = f2(Dic1[l], sk, 32);
 
-                //cout << "k: " << k << endl;
+                //std::cout << "k: " << k << endl;
 
-                cout << "skey: " << skey << endl;
+               //qwq std::cout << "skey: " << skey << endl;
 
-				cout << "!!!!!!!skey= Dic1[ " << l << " ] ( " << Dic1[l] << " ),sk( " << sk << " )" << endl;
+                //qwqstd::cout << "!!!!!!!skey= Dic1[ " << l << " ] ( " << Dic1[l] << " ),sk( " << sk << " )" << endl;
 
-                cout << "IV: " << IV << endl;
+                //qwqstd::cout << "IV: " << IV << endl;
 
-                cout << "indopwjvl Base64:" << indopwjvl << endl;
+                //qwqstd::cout << "indopwjvl Base64:" << indopwjvl << endl;
 				indopwjvl = base64Decode(indopwjvl);
-                cout << "indopwjvl.size():" << indopwjvl.size() << endl;
+                //qwqstd::cout << "indopwjvl.size():" << indopwjvl.size() << endl;
 
-                cout << "indopwjvl:" << indopwjvl << endl;
+                //qwqstd::cout << "indopwjvl:" << indopwjvl << endl;
 
-                cout << "skey.size():" << skey.size() << endl;
+                //qwqstd::cout << "skey.size():" << skey.size() << endl;
 
-                cout << "IV.size():" << IV.size() << endl;
+                //qwqstd::cout << "IV.size():" << IV.size() << endl;
 
                 std::string tmp1 = aesDecrypt(indopwjvl, skey, IV);
 
-                cout << "tmp1: " << tmp1 << endl;
+                //qwqstd::cout << "tmp1: " << tmp1 << endl;
                 std::string op = tmp1.substr(0, 4);
                 std::string ind = tmp1.substr(4);
                 ind = to_string(byteStringToInt(ind));
-				cout << "op: " << op << endl;
+                //qwqstd::cout << "op: " << op << endl;
 
-				cout << "ind: " << ind << endl;
-                cout << "tmp1.size():" << tmp1.size() << endl;
-				cout << "ind.size():" << ind.size() << endl;
+                //qwqstd::cout << "ind: " << ind << endl;
+                //qwqstd::cout << "tmp1.size():" << tmp1.size() << endl;
+                //qwqstd::cout << "ind.size():" << ind.size() << endl;
 
 
 
@@ -740,10 +789,10 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
             Ind.erase(std::remove(Ind.begin(), Ind.end(), item), Ind.end());
         }
 
-        CountingBloomFilter RCBF(3500, 7);
+        CountingBloomFilter RCBF(BLOOM_BITS, BLOOM_HASHES);
 
         for (const std::string& item : Ind) {
-            //cout << "insert to RCBF: "<<item << endl;
+            //std::cout << "insert to RCBF: "<<item << endl;
             RCBF.update(item, "addw");
         }
         //send RCBF to bc
@@ -752,33 +801,40 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
         //if(advice==true)
         vector<string> Finalset;
 
+        std::cout << "输入总索引范围：" << endl;
+        std::cout << "开始：" << endl;
+        cin >> startInd;
+        std::cout << "结束：" << endl;
+        cin >> endInd;
 
+        for (size_t i=startInd;i<=endInd;i++) {
 
-        for (const std::string& item : FileInd) {
+            string item = to_string(i);
+
             if (Q == "disjunctive")
             {
-                cout << "\n disjunctive :" << endl;
-                cout << "check " << item << endl;
+                //qwqstd::cout << "\n disjunctive :" << endl;
+                //qwqstd::cout << "check " << item << endl;
                 if (RCBF.check(item))
                 {
-                    cout << "insert " << item << endl;
+                    //qwqstd::cout << "insert " << item << endl;
                     Finalset.push_back(item);
                 }
             }
             else if (Q == "conjunctive")
             {
-                cout << "\n conjunctive :" << endl;
-                cout << "repeatCheck " << item << endl;
+                //qwq std::cout << "\n conjunctive :" << endl;
+                //qwqstd::cout << "repeatCheck " << item << endl;
                 if (RCBF.repeatCheck(item, q))
                 {
-                    cout << "insert " << item << endl;
+                    //qwq std::cout << "insert " << item << endl;
                     Finalset.push_back(item);
                 }
             }
         }
         std::cout << "Final set: " << endl;
         for (const std::string& item : Finalset) {
-             cout<< item << std::endl;
+             std::cout<< item << std::endl;
         }
     }
     }

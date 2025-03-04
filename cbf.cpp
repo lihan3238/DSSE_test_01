@@ -66,11 +66,12 @@ bool CountingBloomFilter::check(const std::string& data) {
 }
 
 bool CountingBloomFilter::repeatCheck(const std::string& data, size_t r) {
-    size_t count = 0;
+
     for (size_t i = 0; i < k; ++i) {
         size_t idx = hash(data, i);
-        count += CBF[idx];
-        if (count < r) {
+
+        //cout << "count:" << CBF[idx] << endl;
+        if (CBF[idx] < r) {
             return false; // 元素出现次数超过阈值
         }
     }

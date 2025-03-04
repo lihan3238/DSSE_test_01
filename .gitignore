@@ -1,14 +1,29 @@
 # 忽略所有文件
-*
-
+*.json
+app/*.json
+app/client/*.json
+app/server/*.json
+app/trustcenter/*.json
+app_test/*.json
+app_test/client/*.json
+app_test/server/*.json
+app_test/trustcenter/*.json
+.vs
+DSSE_test_01
+vcpkg_installed
+x64
 # 例外规则：仅允许 .json、.cpp 和 .h 文件
-!*.json
-!*.cpp
-!*.h
-!*.dll
-!*.exe
-!app_test
-!app_test/*
+!100.json
+!200.json
+!300.json
+!400.json
+!500.json
+!600.json
+!700.json
+!800.json
+!900.json
+!1000.json
+
 # 例外规则：允许 .gitignore 文件自身被追踪
 !.gitignore
 !*.md

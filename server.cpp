@@ -252,7 +252,7 @@ void searchServer()
                     for (const auto& token : tokens)
                     {
                         searchTokens.push_back(base64Decode(token.asString()));
-                        std::cout << "Received token: " << token.asString() << std::endl;
+                        //qwqstd::cout << "Received token: " << token.asString() << std::endl;
                     }
 
                     // ������Ӧ
@@ -343,10 +343,10 @@ void searchServer()
                     }
                     flag1 = 0;
                     string connector_key = h1(stwjvl, 1);
-                    cout << "connector_key" << connector_key << endl;
-                    cout << base64Encode(connector_key) << endl;
+                    //qwq std::cout << "connector_key" << connector_key << endl;
+                    //qwqstd::cout << base64Encode(connector_key) << endl;
                     string connector_value = base64Decode(Dic2[base64Encode(connector_key)]);
-                    cout << "connector_value" << connector_value << endl;
+                    //qwqstd::cout << "connector_value" << connector_value << endl;
                     string tmp1 = xorKeys(h2(stwjvl), connector_value);
                     if (tmp1.length() >= 4)
                     {
@@ -356,8 +356,8 @@ void searchServer()
                         stwjvll = tmp1.substr(4);
 
                         // ������
-                        std::cout << "Front part (as int): " << DB << std::endl;
-                        std::cout << "Remaining part (st): " << stwjvll << std::endl;
+                        //qwqstd::cout << "Front part (as int): " << DB << std::endl;
+                        //qwqstd::cout << "Remaining part (st): " << stwjvll << std::endl;
                     }
                     else
                     {
@@ -368,7 +368,7 @@ void searchServer()
                     std::string indopwjvlm;
                     for (int i = 0; i < DB; ++i)
                     {
-                        cout << " m = " << i << endl;
+                        //qwqstd::cout << " m = " << i << endl;
                         string indop_key = h34(stwjvl, i, 3);
                         string indop_value = base64Decode(Dic2[base64Encode(indop_key)]);
                         string indopwjvlm = xorKeys(h34(stwjvl, i, 4), indop_value);
@@ -378,9 +378,9 @@ void searchServer()
                         //    indopwjvlm = tmp2.substr(4);
                         //}
 
-                        cout << "R新增 indopwjvlm BASE64: " << indopwjvlm << endl;
+                       //qwq std::cout << "R新增 indopwjvlm BASE64: " << indopwjvlm << endl;
 
-						cout << "indopwjvlm.size():" << indopwjvlm.size() << endl;
+                        //qwqstd::cout << "indopwjvlm.size():" << indopwjvlm.size() << endl;
 
                         Rwjvl.push_back( base64Encode(indopwjvlm));
                     }
@@ -394,7 +394,7 @@ void searchServer()
 
             //    svr.Get("/send_Rsearch_Request", [&](const httplib::Request &, httplib::Response &res)
             //            {
-                        //cout << "Received Rsearch Request" << endl;
+                        //std::cout << "Received Rsearch Request" << endl;
             //        Json::Value root(Json::arrayValue);
             //        for (const auto& pair : Rsearch) {
             //            Json::Value item;
@@ -421,7 +421,7 @@ void searchServer()
 
     svr.Get("/send_Rsearch_Request", [&Rsearch, &svr](const httplib::Request&, httplib::Response& res)
         {
-            cout << "Received Rsearch Request" << endl;
+            std::cout << "Received Rsearch Request" << endl;
             Json::Value root(Json::arrayValue);
             for (const auto& pair : Rsearch) {
                 Json::Value item;
