@@ -48,15 +48,15 @@ void setupClientData() {
 }
 
 // 与服务器通信的函数
-void updateClient() {
+void updateClient(string updateFile) {
     std::string sk;
     std::string MK;
     std::string sk_prime;
     std::unordered_map<int, std::string> Dic1;
     std::string Words[100];
-    std::string updateFile;
-    std::cout << "请输入更新文件：" << std::endl;
-    std::cin >> updateFile;
+    //std::string updateFile;
+    //std::cout << "请输入更新文件：" << std::endl;
+    //std::cin >> updateFile;
 
     // 尝试打开文件以检查是否存在
     std::ifstream src(updateFile, std::ios::binary);
@@ -601,10 +601,10 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
 }
 
 
-void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
+void searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t startInd,size_t endInd) {
 
-    size_t startInd=0;
-    size_t endInd = 0;
+    //size_t startInd=0;
+    //size_t endInd = 0;
 
     map <int, string> Dic1;
 
@@ -801,11 +801,11 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q) {
         //if(advice==true)
         vector<string> Finalset;
 
-        std::cout << "输入总索引范围：" << endl;
-        std::cout << "开始：" << endl;
-        cin >> startInd;
-        std::cout << "结束：" << endl;
-        cin >> endInd;
+        //std::cout << "输入总索引范围：" << endl;
+        //std::cout << "开始：" << endl;
+        //cin >> startInd;
+        //std::cout << "结束：" << endl;
+        //cin >> endInd;
 
         for (size_t i=startInd;i<=endInd;i++) {
 

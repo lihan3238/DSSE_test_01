@@ -9,6 +9,9 @@ int main()
 {
 	// startTrustCenter(LAMBDA, BLOOM_SIZE);
 	int switcher = 1;
+	std::string updateFile;
+	size_t startInd=0;
+	size_t endInd=0;
 	while (switcher)
 	{
 		cout << "1. Setup Client Data" << endl;
@@ -21,7 +24,9 @@ int main()
 			setupClientData();
 			break;
 		case 2:
-			updateClient();
+			std::cout << "请输入更新文件：" << std::endl;
+			std::cin >> updateFile;
+			updateClient(updateFile);
 			break;
 		case 3:
 
@@ -42,7 +47,12 @@ int main()
 				Words.push_back(word); // ���õ������ӵ� Words ������
 			}
 
-			searchClient(searchToken(Words, Q, q), Q, q);
+			std::cout << "输入总索引范围：" << endl;
+			std::cout << "start:" << endl;
+			std::cin >> startInd;
+			std::cout << "end;" << endl;
+			std::cin >> endInd;
+			searchClient(searchToken(Words, Q, q), Q, q,startInd,endInd);
 			break;
 		}
 	}
