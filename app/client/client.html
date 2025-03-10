@@ -59,7 +59,7 @@
 <body>
     <div class="container">
         <h1>Client 操作界面</h1>
-        <button onclick="setupData()">设置客户端数据</button>
+        <button onclick="setupData()">初始化客户端数据</button>
         <button onclick="connectServer()">连接服务器</button>
         <button onclick="toggleSearchForm()">搜索</button>
 
@@ -81,7 +81,7 @@
     <script>
         async function setupData() {
             await fetch('http://127.0.0.1:8080/setup', { method: 'POST' });
-            alert('客户端数据已设置');
+            alert('客户端数据已初始化');
         }
 
         async function connectServer() {
