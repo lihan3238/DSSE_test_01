@@ -147,13 +147,15 @@
     <ClCompile Include="blockchain_test.cpp" />
     <ClCompile Include="cbf.cpp" />
     <ClCompile Include="client.cpp" />
-    <ClCompile Include="client_test.cpp" />
+    <ClCompile Include="client_test.cpp_o" />
     <ClCompile Include="client_web_test.cpp" />
     <ClCompile Include="server.cpp" />
-    <ClCompile Include="server_test.cpp" />
+    <ClCompile Include="server_test.cpp_o" />
+    <ClCompile Include="server_web_test.cpp" />
     <ClCompile Include="test_CBF.cpp" />
     <ClCompile Include="trust_center.cpp" />
-    <ClCompile Include="trust_center_test.cpp" />
+    <ClCompile Include="trust_center_test.cpp_o" />
+    <ClCompile Include="trust_center_web_test.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>

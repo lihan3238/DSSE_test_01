@@ -10,7 +10,7 @@ httplib::Server svr;
 // 处理主页
 
 void index_handler(const httplib::Request&, httplib::Response& res) {
-    ifstream file("index.html");
+    ifstream file("client.html", ios::binary);
     if (!file) {
         res.status = 404;
         res.set_content("HTML file not found", "text/plain");
@@ -29,6 +29,11 @@ void setup_data_handler(const httplib::Request& req, httplib::Response& res) {
 
 // 处理 "Connect Server"
 void update_client_handler(const httplib::Request& req, httplib::Response& res) {
+    if (req.body.empty()) {
+        res.status = 400;
+        res.set_content(R"({"error": "Empty request body"})", "application/json");
+        return;
+    }
     Json::CharReaderBuilder reader;
     Json::Value json_request;
     string errs;
@@ -39,6 +44,8 @@ void update_client_handler(const httplib::Request& req, httplib::Response& res) 
         res.set_content(R"({"error": "Invalid JSON"})", "application/json");
         return;
     }
+
+
 
     string updateFile = json_request["update_file"].asString();
     updateClient(updateFile);
@@ -67,13 +74,20 @@ void search_handler(const httplib::Request& req, httplib::Response& res) {
         Words.push_back(word.asString());
     }
 
-    searchClient(searchToken(Words, search_type, q), search_type, q, startInd, endInd);
+    vector<string> Finalset = searchClient(searchToken(Words, search_type, q), search_type, q, startInd, endInd);
 
     Json::Value response;
     response["message"] = "Search completed";
+    Json::Value results(Json::arrayValue);
+    for (const auto& item : Finalset) {
+        results.append(item);
+    }
+    response["results"] = results;
+
     Json::StreamWriterBuilder writer;
     res.set_content(Json::writeString(writer, response), "application/json");
 }
+
 
 int main() {
     svr.Get("/", index_handler);

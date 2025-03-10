@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Interaction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 50%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+    <script>
+        async function setupServerData() {
+            await fetch('http://127.0.0.1:8081/setup', { method: 'POST' });
+            document.getElementById("status").innerText = "服务器数据已初始化";
+        }
+
+        async function startServer() {
+            await fetch('http://127.0.0.1:8081/start', { method: 'POST' });
+            document.getElementById("status").innerText = "服务器已启动";
+        }
+
+        async function searchServer() {
+            await fetch('http://127.0.0.1:8081/search', { method: 'POST' });
+            document.getElementById("status").innerText = "搜索已执行";
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Server 操作界面</h1>
+        <button onclick="setupServerData()">初始化服务器数据</button>
+        <button onclick="startServer()">启动服务器</button>
+        <button onclick="searchServer()">执行搜索</button>
+
+        <div id="status"></div>
+    </div>
+</body>
+
+</html>

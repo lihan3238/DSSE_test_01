@@ -4,10 +4,6 @@ app/*.json
 app/client/*.json
 app/server/*.json
 app/trustcenter/*.json
-app_test/*.json
-app_test/client/*.json
-app_test/server/*.json
-app_test/trustcenter/*.json
 .vs
 DSSE_test_01
 vcpkg_installed
@@ -23,6 +19,7 @@ x64
 !800.json
 !900.json
 !1000.json
+!all.json
 
 # 例外规则：允许 .gitignore 文件自身被追踪
 !.gitignore

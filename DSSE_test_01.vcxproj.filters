@@ -33,13 +33,13 @@
     <ClCompile Include="client.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="client_test.cpp">
+    <ClCompile Include="client_test.cpp_o">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="trust_center_test.cpp">
+    <ClCompile Include="trust_center_test.cpp_o">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="server_test.cpp">
+    <ClCompile Include="server_test.cpp_o">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="blockchain.cpp">
@@ -49,6 +49,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="client_web_test.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="server_web_test.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="trust_center_web_test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

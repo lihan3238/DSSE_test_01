@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trust Center 控制台</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 50%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            color: green;
+        }
+
+        pre {
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+    <script>
+        async function setupTrustCenter() {
+            document.getElementById("setup_trust_center").innerText = "Trust Center 已上线，等待获取...";
+
+            let response = await fetch('http://127.0.0.1:8082/start_trust');
+            let data = await response.json();
+            { {/*  let displayText = ` 状态: ${data.status}  `;  */ } }
+
+            document.getElementById("setup_trust_center").innerText = "Trust Center 已下线，数据已发送...";
+            { {/*  document.getElementById("setup_trust_center").innerText = JSON.stringify(data, null, 4);  */ } }
+        }
+
+    </script>
+</head>
+
+<body>
+    <h1>Trust Center 控制台</h1>
+    <button onclick="setupTrustCenter()">Trust Center 上线</button>
+
+    <h2>Trust Center 数据</h2>
+    <pre id="setup_trust_center">Trust Center 离线</pre>
+</body>
+
+</html>

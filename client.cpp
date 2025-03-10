@@ -658,7 +658,7 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
 }
 
 
-void searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t startInd,size_t endInd) {
+vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t startInd,size_t endInd) {
 
     //size_t startInd=0;
     //size_t endInd = 0;
@@ -897,9 +897,11 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t 
                 }
             }
         }
-        std::cout << "Final set: " << endl;
-        for (const std::string& item : Finalset) {
-             std::cout<< item << std::endl;
-        }
+        //std::cout << "Final set: " << endl;
+        //for (const std::string& item : Finalset) {
+        //     std::cout<< item << std::endl;
+        //}
+        return Finalset;
+
     }
     }

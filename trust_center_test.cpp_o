@@ -1,0 +1,49 @@
+#include <httplib.h>
+#include <iostream>
+//#include <thread>
+//#include "server.h"
+//#include "client.h"
+#include "trust_center.h"
+
+// 全局参数
+const int LAMBDA = 256; // 安全参数 λ
+const int BLOOM_SIZE = 256; // 布隆过滤器大小
+
+//const int HASH_LEN = 32; // 哈希值长度
+
+//int main() {
+//    // 启动信任中心线程
+//    std::thread trustcenterThread(startTrustCenter, LAMBDA, BLOOM_SIZE);
+//
+//    // 启动服务端设置线程
+//    std::thread serverThread_setup(setupServerData);
+//
+//    // 启动客户端设置线程
+//    std::thread clientThread_setup(setupClientData);
+//
+//    trustcenterThread.join();
+//    serverThread_setup.join();
+//    clientThread_setup.join();
+//
+//    // 确保服务器已经在监听
+//    std::thread serverThread_update(startServer);
+//
+//    // 主线程延时启动
+//   // std::this_thread::sleep_for(std::chrono::seconds(2));  // 确保服务器有足够时间启动
+//
+//    // 启动客户端更新线程
+//
+//    serverThread_update.join(); 
+//
+//    std::this_thread::sleep_for(std::chrono::seconds(1));  // 确保服务器有足够时间启动
+//    std::thread clientThread_update(communicateWithServer);
+//
+//    clientThread_update.join();
+//
+//    return 0;
+//}
+
+int main123451234() {
+	startTrustCenter(LAMBDA, BLOOM_SIZE);
+	return 0;
+}

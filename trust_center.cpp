@@ -4,7 +4,15 @@
 #include <json/json.h>
 
 using namespace std;
+std::atomic<int> request_count(0); // 计数已收到的请求
 
+void checkShutdown(httplib::Server& svr) {
+    if (request_count.load() >= 2) { // 3个不同的请求完成(BlockChain暂时不计入 设为2)
+        cout << "All systems received their data. Trust Center is shutting down." << endl;
+        request_count=0;
+        svr.stop();
+    }
+}
 // Base64 编码（修改为使用 std::string 进行处理）
 std::string stringToBase64(const std::string &data)
 {
@@ -59,6 +67,8 @@ void startTrustCenter(int key_size, int bloom_size)
         std::string response_data = Json::writeString(writer, json);
 
         res.set_content(response_data, "application/json");
+        request_count.fetch_add(1);
+        checkShutdown(svr);
         std::cout << "Sent data to Client." << std::endl; });
 
     // 分发给 Server 的密钥和参数
@@ -72,6 +82,8 @@ void startTrustCenter(int key_size, int bloom_size)
         std::string response_data = Json::writeString(writer, json);
 
         res.set_content(response_data, "application/json");
+        request_count.fetch_add(1);
+        checkShutdown(svr);
         std::cout << "Sent data to Server." << std::endl; });
 
     // 分发给 Server 的密钥和参数
@@ -85,16 +97,17 @@ void startTrustCenter(int key_size, int bloom_size)
         std::string response_data = Json::writeString(writer, json);
 
         res.set_content(response_data, "application/json");
+        request_count.fetch_add(1);
+        checkShutdown(svr);
         std::cout << "Sent data to BlockChain." << std::endl; });
 
     // 启动 Trust Center 并等待连接
     std::cout << "Trust Center is running on port 9000..." << std::endl;
-    std::thread serverThread([&]()
-                             { svr.listen("127.0.0.1", 9000); });
+    std::thread serverThread([&]() { svr.listen("127.0.0.1", 9000); });
 
     // 模拟 Trust Center 确认所有通信完成后下线
-    std::this_thread::sleep_for(std::chrono::seconds(20)); // 允许足够时间完成通信
-    svr.stop();                                            // 停止服务
+    //std::this_thread::sleep_for(std::chrono::seconds(20)); // 允许足够时间完成通信
+    //svr.stop();                                            // 停止服务
 
     serverThread.join();
     std::cout << "Trust Center is shutting down." << std::endl;

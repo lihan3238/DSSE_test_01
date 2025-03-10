@@ -15,4 +15,4 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words,strin
 
 bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& searchTokens);
 
-void searchClient(std::vector<std::string> searchTokens, string Q, int q, size_t startInd, size_t endInd);
+vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int q, size_t startInd, size_t endInd);
