@@ -46,6 +46,7 @@ void CountingBloomFilter::update(const std::string& data, const std::string& op)
     for (size_t i = 0; i < k; ++i) {
         size_t idx = hash(data, i);
         if (op == "addw") {
+			//cout << idx << endl;
             CBF[idx] += 1;
         } else if (op == "dele") {
             if (CBF[idx] > 0) {
@@ -86,25 +87,37 @@ Json::Value CountingBloomFilter::toJson() const {
     return jsonArray;
 }
 
-CountingBloomFilter CountingBloomFilter::fromJson(const Json::Value& json) {
-    // 获取计数布隆过滤器的计数器数量和哈希函数数量
-    size_t numCounters = json["numCounters"].asUInt();
-    size_t numHashFunctions = json["numHashFunctions"].asUInt();
+void CountingBloomFilter::fromJson(const Json::Value& json) {
+    //// 获取计数布隆过滤器的计数器数量和哈希函数数量
+    //size_t numCounters = json["numCounters"].asUInt();
+    //size_t numHashFunctions = json["numHashFunctions"].asUInt();
 
-    // 创建一个新的 CountingBloomFilter 对象
-    CountingBloomFilter cbf(numCounters, numHashFunctions);
+    //// 创建一个新的 CountingBloomFilter 对象
+    //CountingBloomFilter cbf(numCounters, numHashFunctions);
 
-    // 解析计数器数组
-    const Json::Value& jsonArray = json["CBF"];
-    if (jsonArray.isArray()) {
-        // 从 JSON 数组中恢复计数器的值
-        for (Json::Value::ArrayIndex i = 0; i < jsonArray.size(); ++i) {
-            int count = jsonArray[i].asInt();
-            cbf.CBF[i] = count;  // 恢复计数器值
+    //// 解析计数器数组
+    //const Json::Value& jsonArray = json["CBF"];
+    //if (jsonArray.isArray()) {
+    //    // 从 JSON 数组中恢复计数器的值
+    //    for (Json::Value::ArrayIndex i = 0; i < jsonArray.size(); ++i) {
+    //        int count = jsonArray[i].asInt();
+    //        cbf.CBF[i] = count;  // 恢复计数器值
+    //    }
+    //}
+
+    //return cbf;
+
+
+        if (!json.isArray()) {
+            throw std::invalid_argument("Invalid JSON format for CountingBloomFilter.");
         }
-    }
 
-    return cbf;
+        for (Json::Value::ArrayIndex i = 0; i < json.size(); ++i) {
+            this->CBF[i] = json[i].asInt();
+        }
+
+        return ;
+
 }
 
 // 赋值运算符重载
@@ -123,6 +136,12 @@ CountingBloomFilter& CountingBloomFilter::operator=(const CountingBloomFilter& o
     }
     return *this;  // 返回当前对象的引用
 }
+
+// 判断运算符重载
+bool CountingBloomFilter::operator==(const CountingBloomFilter& other) const {
+    return (m == other.m) && (k == other.k) && (CBF == other.CBF);
+}
+
 
 // 计数布隆过滤器的合并运算符重载
 CountingBloomFilter CountingBloomFilter::operator+(const CountingBloomFilter& other) const {
@@ -145,6 +164,8 @@ CountingBloomFilter CountingBloomFilter::operator+(const CountingBloomFilter& ot
 
     return result;
 }
+
+
 
 
 //int main() {

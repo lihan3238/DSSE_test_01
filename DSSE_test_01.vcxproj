@@ -148,6 +148,7 @@
     <ClCompile Include="cbf.cpp" />
     <ClCompile Include="client.cpp" />
     <ClCompile Include="client_test.cpp" />
+    <ClCompile Include="client_web_test.cpp" />
     <ClCompile Include="server.cpp" />
     <ClCompile Include="server_test.cpp" />
     <ClCompile Include="test_CBF.cpp" />

@@ -7,6 +7,66 @@ const int BLOOM_BITS = 350000; // 布隆过滤器位数
 
 const std::string IV = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10"; // IV as string
 //vector<string> FileInd = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"};
+
+bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& searchTokens) {
+
+
+    // 尝试读取现有数据
+    map <string, CountingBloomFilter> CBFList;
+    std::ifstream CBFifs("CBFList.json");
+    if (CBFifs.is_open()) {
+        Json::CharReaderBuilder reader;
+        Json::Value root;
+        std::string errs;
+
+        // 读取并解析 JSON 文件内容
+        if (Json::parseFromStream(reader, CBFifs, &root, &errs)) {
+            if (root.isArray()) { // 确保顶层是数组
+                for (const auto& item : root) {
+                    if (item.isObject() && item.isMember("key") && item.isMember("data")) {
+                        const std::string& cbf_key = item["key"].asString();
+                        const Json::Value& cbf_data = item["data"];
+
+                        // 将 data 转换为 CountingBloomFilter 的格式
+                            CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
+                            //std::string serialized_data;
+                            //cout << cbf_data;
+                            cbf.fromJson(cbf_data);
+                            CBFList[cbf_key] = cbf;  // 反序列化 CBF
+
+                    }
+                }
+                std::cout << "CBFList data loaded successfully." << std::endl;
+            }
+            else {
+                std::cerr << "JSON root is not an array." << std::endl;
+            }
+        }
+        else {
+            std::cerr << "Failed to parse CBFList.json: " << errs << std::endl;
+        }
+        CBFifs.close();
+    }
+    else {
+        std::cout << "CBFList.json does not exist or is empty. Initializing new map." << std::endl;
+    }
+
+    CountingBloomFilter BCBF(BLOOM_BITS, BLOOM_HASHES);
+    for (const auto& st : searchTokens)
+    {
+		BCBF =BCBF+ CBFList[st];
+    }
+	if (RCBF == BCBF)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+
 //qwq
 // Setup 函数：从 Trust Center 获取数据并保存到文件
 void setupClientData() {
@@ -307,6 +367,8 @@ void updateClient(string updateFile) {
             std::string opwj_vl_m = "addw"; // 假定操作类型为 addw
 
             // 更新 CBFj,vl
+
+			//cout <<word << " indwj_vl_m: " << indwj_vl_m << " opwj_vl_m: " << opwj_vl_m << endl;
             CBFj_vl.update(indwj_vl_m, opwj_vl_m);
             tmp3 = opwj_vl_m;
             // 生成加密的 indopwj_vl,m
@@ -418,9 +480,8 @@ void updateClient(string updateFile) {
     }
 
     //Up
-
-        // 尝试读取现有数据
-	map <string, CountingBloomFilter> CBFList;
+    // 尝试读取现有数据
+    map <string, CountingBloomFilter> CBFList;
     std::ifstream CBFifs("CBFList.json");
     if (CBFifs.is_open()) {
         Json::CharReaderBuilder reader;
@@ -436,17 +497,12 @@ void updateClient(string updateFile) {
                         const Json::Value& cbf_data = item["data"];
 
                         // 将 data 转换为 CountingBloomFilter 的格式
-                        if (cbf_data.isArray()) {
-                            CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
-                            std::string serialized_data;
+                        CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
+                        //std::string serialized_data;
 
-                            for (const auto& value : cbf_data) {
-                                serialized_data += std::to_string(value.asInt()); // 假设是整数
-                            }
+                        cbf.fromJson(cbf_data);
+                        CBFList[cbf_key] = cbf;  // 反序列化 CBF
 
-                            cbf.construct(serialized_data);
-                            CBFList[cbf_key] = cbf;  // 反序列化 CBF
-                        }
                     }
                 }
                 std::cout << "CBFList data loaded successfully." << std::endl;
@@ -463,6 +519,7 @@ void updateClient(string updateFile) {
     else {
         std::cout << "CBFList.json does not exist or is empty. Initializing new map." << std::endl;
     }
+
 
 
         string stwjvl;
@@ -763,7 +820,7 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t 
                 //qwqstd::cout << "tmp1: " << tmp1 << endl;
                 std::string op = tmp1.substr(0, 4);
                 std::string ind = tmp1.substr(4);
-                ind = to_string(byteStringToInt(ind));
+                //!!!!//ind = to_string(byteStringToInt(ind));
                 //qwqstd::cout << "op: " << op << endl;
 
                 //qwqstd::cout << "ind: " << ind << endl;
@@ -793,12 +850,20 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t 
 
         for (const std::string& item : Ind) {
             //std::cout << "insert to RCBF: "<<item << endl;
+			//cout << "insert to RCBF: " << item << endl;
             RCBF.update(item, "addw");
         }
+
         //send RCBF to bc
 
-        //advice=Verify(RCBF,searchtoken);
-        //if(advice==true)
+        bool advice=verifyCBF(RCBF,searchTokens);
+		if (advice == true) {
+			std::cout << "The advice is true" << endl;
+		}
+		else {
+			std::cout << "The advice is false" << endl;
+		}
+
         vector<string> Finalset;
 
         //std::cout << "输入总索引范围：" << endl;
@@ -815,7 +880,7 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t 
             {
                 //qwqstd::cout << "\n disjunctive :" << endl;
                 //qwqstd::cout << "check " << item << endl;
-                if (RCBF.check(item))
+                if (RCBF.check(intTo28ByteString(i)))
                 {
                     //qwqstd::cout << "insert " << item << endl;
                     Finalset.push_back(item);
@@ -825,7 +890,7 @@ void searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t 
             {
                 //qwq std::cout << "\n conjunctive :" << endl;
                 //qwqstd::cout << "repeatCheck " << item << endl;
-                if (RCBF.repeatCheck(item, q))
+                if (RCBF.repeatCheck(intTo28ByteString(i), q))
                 {
                     //qwq std::cout << "insert " << item << endl;
                     Finalset.push_back(item);

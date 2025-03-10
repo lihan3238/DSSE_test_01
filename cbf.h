@@ -37,8 +37,9 @@ public:
     bool repeatCheck(const std::string& data, size_t r);
     Json::Value toJson() const;
     CountingBloomFilter& operator=(const CountingBloomFilter& other);
+    bool operator==(const CountingBloomFilter& other) const;
     CountingBloomFilter operator+(const CountingBloomFilter& other) const;
-    static CountingBloomFilter fromJson(const Json::Value& json);
+    void fromJson(const Json::Value& json);
 private:
     size_t m;  // 计数器的数量
     size_t k;  // 哈希函数的数量
