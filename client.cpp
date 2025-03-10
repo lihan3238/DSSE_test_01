@@ -2,8 +2,8 @@
 
 const int LAMBDA = 256; // 安全参数 λ
 const int BLOOM_SIZE = 256; // 布隆过滤器大小
-const int BLOOM_HASHES = 700; // 布隆过滤器哈希函数数量
-const int BLOOM_BITS = 350000; // 布隆过滤器位数
+const int BLOOM_HASHES = 20; // 布隆过滤器哈希函数数量
+const int BLOOM_BITS = 400000; // 布隆过滤器位数
 
 const std::string IV = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10"; // IV as string
 //vector<string> FileInd = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"};
@@ -314,6 +314,10 @@ void updateClient(string updateFile) {
     std::map<std::string, std::string> connectorData;
     std::map<std::string, std::string> indopData;
 
+    // 计时点
+
+	auto start = chrono::high_resolution_clock::now();
+
     for (int i = 0; i < wc; i++) {
         word = Words[i];
         // 确保该单词在 index 中存在
@@ -398,6 +402,12 @@ void updateClient(string updateFile) {
 
         Up.push_back(std::make_tuple(k, l, CBFj_vl));
     }
+
+	// 计时点
+    auto stop_1 = chrono::high_resolution_clock::now();
+	auto duration_1 = chrono::duration_cast<chrono::microseconds>(stop_1 - start);
+	cout << "Time taken by updateClient: " << duration_1.count() << " ms" << endl;
+
 
     httplib::Client serverCli("http://127.0.0.1:9001");
     Json::Value data;

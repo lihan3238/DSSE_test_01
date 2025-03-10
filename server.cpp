@@ -326,6 +326,12 @@ void searchServer()
             int DB = 0;
 			int l0 = l;
             std::string stwjvll = "";
+
+            // 计时点
+
+            auto start = chrono::high_resolution_clock::now();
+
+
             for (const auto& token : searchTokens)
             {
                 l = l0;
@@ -414,6 +420,14 @@ void searchServer()
             //    std::cout << "Server running at http://localhost:9008..." << std::endl;
             //    svr.listen("localhost", 9008);
             }
+
+            // 计时点
+            
+            auto stop_1 = chrono::high_resolution_clock::now();
+
+			auto duration_1 = chrono::duration_cast<chrono::microseconds>(stop_1 - start);
+			cout << "Time taken by searchServer: " << duration_1.count() << " ms" << endl;
+
         }
     );
     // sendRsearchtoClient and BC
