@@ -141,7 +141,7 @@
             const resultData = await response.json();
 
             let resultDiv = document.getElementById("search-results");
-            resultDiv.innerHTML = `<h3>搜索结果:</h3><ul>` +
+            resultDiv.innerHTML = `<h3>区块链验证结果:` + resultData.verify_status + `</h3>` + `<h3>搜索结果:</h3><ul>` +
                 resultData.results.map(item => `<li>${item}</li>`).join("") +
                 `</ul>`;
         }

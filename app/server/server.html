@@ -58,11 +58,13 @@
         }
 
         async function startServer() {
+            document.getElementById("status").innerText = "更新服务器已启动";
             await fetch('http://127.0.0.1:8081/start', { method: 'POST' });
-            document.getElementById("status").innerText = "服务器已启动";
+            document.getElementById("status").innerText = "更新已执行";
         }
 
         async function searchServer() {
+            document.getElementById("status").innerText = "搜索服务器已启动";
             await fetch('http://127.0.0.1:8081/search', { method: 'POST' });
             document.getElementById("status").innerText = "搜索已执行";
         }

@@ -854,17 +854,21 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
             RCBF.update(item, "addw");
         }
 
-        //send RCBF to bc
-
-        bool advice=verifyCBF(RCBF,searchTokens);
-		if (advice == true) {
-			std::cout << "The advice is true" << endl;
-		}
-		else {
-			std::cout << "The advice is false" << endl;
-		}
 
         vector<string> Finalset;
+
+        //send RCBF to bc
+        bool advice=verifyCBF(RCBF,searchTokens);
+		if (advice == true) {
+			//std::cout << "The advice is true" << endl;
+			Finalset.push_back("true");
+		}
+		else {
+			//std::cout << "The advice is false" << endl;
+			Finalset.push_back("false");
+		}
+
+
 
         //std::cout << "输入总索引范围：" << endl;
         //std::cout << "开始：" << endl;

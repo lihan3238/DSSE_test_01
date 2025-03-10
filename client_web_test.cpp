@@ -79,9 +79,15 @@ void search_handler(const httplib::Request& req, httplib::Response& res) {
     Json::Value response;
     response["message"] = "Search completed";
     Json::Value results(Json::arrayValue);
+    // 1. 取出第一个元素（使用 std::move 避免拷贝）
+    string verify_status = std::move(Finalset.front());
+
+    // 2. 从 vector 中移除第一个元素
+    Finalset.erase(Finalset.begin());
     for (const auto& item : Finalset) {
         results.append(item);
     }
+	response["verify_status"] = verify_status;
     response["results"] = results;
 
     Json::StreamWriterBuilder writer;
