@@ -223,6 +223,9 @@ void updateClient(string updateFile) {
     Json::Value updatedData;
     updatedData["sk"] = base64Encode(sk);
     updatedData["MK"] = base64Encode(MK);
+    updatedData["BLOOM_HASHES"] = BLOOM_HASHES;
+    updatedData["BLOOM_BITS"] = BLOOM_BITS;
+
     updatedData["l"] = l;
 
     std::ofstream ofs("client_data.json");
