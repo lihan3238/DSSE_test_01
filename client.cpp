@@ -2,13 +2,13 @@
 
 const int LAMBDA = 256; // 安全参数 λ
 const int BLOOM_SIZE = 256; // 布隆过滤器大小
-const int BLOOM_HASHES = 20; // 布隆过滤器哈希函数数量
-const int BLOOM_BITS = 400000; // 布隆过滤器位数
+//const int BLOOM_HASHES = 20; // 布隆过滤器哈希函数数量
+//const int BLOOM_BITS = 400000; // 布隆过滤器位数
 
 const std::string IV = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10"; // IV as string
 //vector<string> FileInd = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"};
 
-bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& searchTokens) {
+bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& searchTokens, int BLOOM_HASHES, int BLOOM_BITS) {
 
 
     // 尝试读取现有数据
@@ -69,7 +69,7 @@ bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& search
 
 //qwq
 // Setup 函数：从 Trust Center 获取数据并保存到文件
-void setupClientData() {
+void setupClientData(int BLOOM_HASHES, int BLOOM_BITS) {
     std::string sk;
     std::string MK;
     httplib::Client cli("http://127.0.0.1:9000");
@@ -85,11 +85,15 @@ void setupClientData() {
         if (Json::parseFromStream(reader, s, &json, &errs)) {
             sk = base64Decode(json["sk"].asString());
             MK = base64Decode(json["MK"].asString());
-
+            //BLOOM_HASHES = json["BLOOM_HASHES"].asInt();
+            //BLOOM_BITS = json["BLOOM_BITS"].asInt();
             // 保存数据到文件
             Json::Value saveData;
             saveData["sk"] = json["sk"];
             saveData["MK"] = json["MK"];
+            saveData["BLOOM_HASHES"] = BLOOM_HASHES;
+            saveData["BLOOM_BITS"] = BLOOM_BITS;
+
             saveData["l"] = 0;
 
             std::ofstream ofs("client_data.json");
@@ -109,6 +113,8 @@ void setupClientData() {
 
 // 与服务器通信的函数
 void updateClient(string updateFile) {
+    int BLOOM_HASHES = -1; // 默认值
+    int BLOOM_BITS = -1;   // 默认值
     std::string sk;
     std::string MK;
     std::string sk_prime;
@@ -167,6 +173,8 @@ void updateClient(string updateFile) {
         if (Json::parseFromStream(reader, ifs, &savedData, &errs)) {
             sk = base64Decode(savedData["sk"].asString());
             MK = base64Decode(savedData["MK"].asString());
+            BLOOM_HASHES = savedData["BLOOM_HASHES"].asInt();
+            BLOOM_BITS = savedData["BLOOM_BITS"].asInt();
 
             if (savedData.isMember("l")) {
                 l = savedData["l"].asInt() + 1;
@@ -604,6 +612,8 @@ void updateClient(string updateFile) {
 }
 
 std::vector<std::string> searchToken(const std::vector<std::string>& words, string Q, int q) {
+    int BLOOM_HASHES = -1; // 默认值
+    int BLOOM_BITS = -1;   // 默认值
     std::map<int, std::string> Dic1;
     int l_n = 0;
     std::vector<std::string> searchTokens;
@@ -645,9 +655,12 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
         Json::CharReaderBuilder reader;
         Json::Value savedData;
         std::string errs;
+
         if (Json::parseFromStream(reader, ifs, &savedData, &errs)) {
             sk = base64Decode(savedData["sk"].asString());
-            MK = base64Decode(savedData["MK"].asString());
+            MK = base64Decode(savedData["MK"].asString());            
+            BLOOM_HASHES = savedData["BLOOM_HASHES"].asInt();
+            BLOOM_BITS = savedData["BLOOM_BITS"].asInt();
         }
         ifs.close(); // 关闭文件
     }
@@ -669,9 +682,24 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
 
 
 vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t startInd,size_t endInd) {
-
+    int BLOOM_HASHES = -1; // 默认值
+    int BLOOM_BITS = -1;   // 默认值
     //size_t startInd=0;
     //size_t endInd = 0;
+        // 检查文件是否存在，加载数据
+    std::ifstream ifs("client_data.json");
+    if (ifs.is_open()) {
+        Json::CharReaderBuilder reader;
+        Json::Value savedData;
+        std::string errs;
+
+        if (Json::parseFromStream(reader, ifs, &savedData, &errs)) {
+
+            BLOOM_HASHES = savedData["BLOOM_HASHES"].asInt();
+            BLOOM_BITS = savedData["BLOOM_BITS"].asInt();
+        }
+        ifs.close(); // 关闭文件
+    }
 
     map <int, string> Dic1;
 
@@ -868,7 +896,7 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
         vector<string> Finalset;
 
         //send RCBF to bc
-        bool advice=verifyCBF(RCBF,searchTokens);
+        bool advice=verifyCBF(RCBF,searchTokens,BLOOM_HASHES,BLOOM_BITS);
 		if (advice == true) {
 			//std::cout << "The advice is true" << endl;
 			Finalset.push_back("true");

@@ -35,7 +35,7 @@ void search_server_handler(const httplib::Request&, httplib::Response& res) {
     res.set_content(R"({"message": "Search executed"})", "application/json");
 }
 
-int main51453() {
+void main51453() {
     svr_cs.Get("/", svr_index_handler);
     svr_cs.Post("/setup", setup_server_handler);
     svr_cs.Post("/start", start_server_handler);
@@ -43,4 +43,5 @@ int main51453() {
 
     cout << "Server running at http://localhost:8081" << endl;
     svr_cs.listen("0.0.0.0", 8081);
+    return;
 }

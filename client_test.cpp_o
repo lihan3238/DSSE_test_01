@@ -21,12 +21,12 @@ int main124412424()
 		switch (switcher)
 		{
 		case 1:
-			setupClientData();
+			//setupClientData();
 			break;
 		case 2:
 			std::cout << "请输入更新文件：" << std::endl;
 			std::cin >> updateFile;
-			updateClient(updateFile);
+			//updateClient(updateFile);
 			break;
 		case 3:
 
@@ -52,7 +52,7 @@ int main124412424()
 			std::cin >> startInd;
 			std::cout << "end;" << endl;
 			std::cin >> endInd;
-			searchClient(searchToken(Words, Q, q), Q, q,startInd,endInd);
+			//searchClient(searchToken(Words, Q, q), Q, q,startInd,endInd);
 			break;
 		}
 	}

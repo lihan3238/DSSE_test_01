@@ -7,9 +7,12 @@ using namespace std;
 
 httplib::Server svr;
 
+
 // 处理主页
 
 void index_handler(const httplib::Request&, httplib::Response& res) {
+    int BLOOM_HASHES = -1; // 默认值
+    int BLOOM_BITS = -1;   // 默认值
     ifstream file("client.html", ios::binary);
     if (!file) {
         res.status = 404;
@@ -23,7 +26,20 @@ void index_handler(const httplib::Request&, httplib::Response& res) {
 
 // 处理 "Setup Client Data"
 void setup_data_handler(const httplib::Request& req, httplib::Response& res) {
-    setupClientData();
+    Json::Value json_request;
+    Json::CharReaderBuilder reader;
+    string errs;
+    istringstream ss(req.body);
+
+    if (!Json::parseFromStream(reader, ss, &json_request, &errs)) {
+        res.status = 400;
+        res.set_content(R"({"error": "Invalid JSON"})", "application/json");
+        return;
+    }
+
+    int BLOOM_HASHES = json_request["bloom_hashes"].asInt();
+    int BLOOM_BITS = json_request["bloom_bits"].asInt();
+    setupClientData( BLOOM_HASHES,BLOOM_BITS);
     res.set_content(R"({"message": "Client data set up successfully"})", "application/json");
 }
 
@@ -44,8 +60,6 @@ void update_client_handler(const httplib::Request& req, httplib::Response& res) 
         res.set_content(R"({"error": "Invalid JSON"})", "application/json");
         return;
     }
-
-
 
     string updateFile = json_request["update_file"].asString();
     updateClient(updateFile);
