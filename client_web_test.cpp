@@ -109,7 +109,7 @@ void search_handler(const httplib::Request& req, httplib::Response& res) {
 }
 
 
-int main() {
+void main16984163() {
     svr.Get("/", index_handler);
     svr.Post("/setup", setup_data_handler);
     svr.Post("/connect", update_client_handler);
@@ -117,4 +117,5 @@ int main() {
 
     cout << "Server running at http://localhost:8080" << endl;
     svr.listen("0.0.0.0", 8080);
+    return;
 }

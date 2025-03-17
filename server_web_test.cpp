@@ -35,7 +35,7 @@ void search_server_handler(const httplib::Request&, httplib::Response& res) {
     res.set_content(R"({"message": "Search executed"})", "application/json");
 }
 
-void main51453() {
+void main() {
     svr_cs.Get("/", svr_index_handler);
     svr_cs.Post("/setup", setup_server_handler);
     svr_cs.Post("/start", start_server_handler);

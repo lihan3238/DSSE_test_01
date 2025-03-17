@@ -59,6 +59,11 @@
 <body>
     <div class="container">
         <h1>Client 操作界面</h1>
+        <h3>初始化客户端数据</h3>
+        <div id="bloom-inputs">
+            <input type="number" id="bloomHashes" placeholder="输入 BLOOM_HASHES">
+            <input type="number" id="bloomBits" placeholder="输入 BLOOM_BITS">
+        </div>
         <button onclick="setupData()">初始化客户端数据</button>
         <button onclick="connectServer()">连接服务器</button>
         <button onclick="toggleSearchForm()">搜索</button>
@@ -80,8 +85,26 @@
 
     <script>
         async function setupData() {
-            await fetch('http://127.0.0.1:8080/setup', { method: 'POST' });
+            let bloomHashes = parseInt(document.getElementById("bloomHashes").value);
+            let bloomBits = parseInt(document.getElementById("bloomBits").value);
+
+            if (isNaN(bloomHashes) || isNaN(bloomBits)) {
+                alert("请输入有效的 BLOOM_HASHES 和 BLOOM_BITS 值");
+                return;
+            }
+
+            // 存储到 localStorage
+            localStorage.setItem("BLOOM_HASHES", bloomHashes);
+            localStorage.setItem("BLOOM_BITS", bloomBits);
+
+            await fetch('http://127.0.0.1:8080/setup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bloom_hashes: bloomHashes, bloom_bits: bloomBits })
+            });
+
             alert('客户端数据已初始化');
+            document.getElementById("bloom-inputs").style.display = "none";
         }
 
         async function connectServer() {

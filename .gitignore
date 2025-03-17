@@ -19,6 +19,10 @@ x64
 !800.json
 !900.json
 !1000.json
+!1500.json
+!2500.json
+!3500.json
+!4500.json
 !all.json
 
 # 例外规则：允许 .gitignore 文件自身被追踪

@@ -416,7 +416,7 @@ void updateClient(string updateFile) {
 
 	// ¼ÆÊ±µã
     auto stop_1 = chrono::high_resolution_clock::now();
-	auto duration_1 = chrono::duration_cast<chrono::microseconds>(stop_1 - start);
+	auto duration_1 = chrono::duration_cast<chrono::milliseconds>(stop_1 - start);
 	cout << "Time taken by updateClient: " << duration_1.count() << " ms" << endl;
 
 
