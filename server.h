@@ -11,3 +11,4 @@
 void setupServerData();
 void updateServer();
 void searchServer();
+void svr_reSet();

@@ -67,6 +67,7 @@
         <button onclick="setupData()">初始化客户端数据</button>
         <button onclick="connectServer()">连接服务器</button>
         <button onclick="toggleSearchForm()">搜索</button>
+        <button onclick="reSet()">重置数据</button>
 
         <div id="search-form" style="display: none; margin-top: 20px;">
             <input type="number" id="wordCount" placeholder="输入要搜索的词数量">
@@ -167,6 +168,12 @@
             resultDiv.innerHTML = `<h3>区块链验证结果:` + resultData.verify_status + `</h3>` + `<h3>搜索结果:</h3><ul>` +
                 resultData.results.map(item => `<li>${item}</li>`).join("") +
                 `</ul>`;
+        }
+
+        async function reSet() {
+            { {/*  document.getElementById("status").innerText = "开始重置数据";  */ } }
+            await fetch('http://127.0.0.1:8080/reset', { method: 'POST' });
+            alert('数据已重置');
         }
     </script>
 </body>

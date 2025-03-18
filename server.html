@@ -68,6 +68,12 @@
             await fetch('http://127.0.0.1:8081/search', { method: 'POST' });
             document.getElementById("status").innerText = "搜索已执行";
         }
+
+        async function reSet() {
+            document.getElementById("status").innerText = "开始重置数据";
+            await fetch('http://127.0.0.1:8081/reset', { method: 'POST' });
+            document.getElementById("status").innerText = "数据已重置";
+        }
     </script>
 </head>
 
@@ -77,6 +83,7 @@
         <button onclick="setupServerData()">初始化服务器数据</button>
         <button onclick="startServer()">启动服务器</button>
         <button onclick="searchServer()">执行搜索</button>
+        <button onclick="reSet()">重置数据</button>
 
         <div id="status"></div>
     </div>

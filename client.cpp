@@ -8,48 +8,64 @@ const int BLOOM_SIZE = 256; // 布隆过滤器大小
 const std::string IV = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10"; // IV as string
 //vector<string> FileInd = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"};
 
+
+void cli_reSet() {
+        std::vector<std::string> filenames = {"Dic1.json", "CBFList.json", "client_data.json", "update.json" };
+        for (const std::string& file : filenames) {
+            // 以截断模式打开文件（std::ios::trunc），清空文件内容
+            std::ofstream ofs(file, std::ios::trunc);
+            if (ofs) {
+                std::cout << "Cleared: " << file << std::endl;
+            }
+            else {
+                std::cerr << "Failed to clear: " << file << std::endl;
+            }
+        }
+}
+
+
 bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& searchTokens, int BLOOM_HASHES, int BLOOM_BITS) {
 
 
-    // 尝试读取现有数据
-    map <string, CountingBloomFilter> CBFList;
-    std::ifstream CBFifs("CBFList.json");
-    if (CBFifs.is_open()) {
-        Json::CharReaderBuilder reader;
-        Json::Value root;
-        std::string errs;
+        // 尝试读取现有数据
+        map <string, CountingBloomFilter> CBFList;
+        std::ifstream CBFifs("CBFList.json");
+        if (CBFifs.is_open()) {
+            Json::CharReaderBuilder reader;
+            Json::Value root;
+            std::string errs;
 
-        // 读取并解析 JSON 文件内容
-        if (Json::parseFromStream(reader, CBFifs, &root, &errs)) {
-            if (root.isArray()) { // 确保顶层是数组
-                for (const auto& item : root) {
-                    if (item.isObject() && item.isMember("key") && item.isMember("data")) {
-                        const std::string& cbf_key = item["key"].asString();
-                        const Json::Value& cbf_data = item["data"];
+            // 读取并解析 JSON 文件内容
+            if (Json::parseFromStream(reader, CBFifs, &root, &errs)) {
+                if (root.isArray()) { // 确保顶层是数组
+                    for (const auto& item : root) {
+                        if (item.isObject() && item.isMember("key") && item.isMember("data")) {
+                            const std::string& cbf_key = item["key"].asString();
+                            const Json::Value& cbf_data = item["data"];
 
-                        // 将 data 转换为 CountingBloomFilter 的格式
-                            CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
-                            //std::string serialized_data;
-                            //cout << cbf_data;
-                            cbf.fromJson(cbf_data);
-                            CBFList[cbf_key] = cbf;  // 反序列化 CBF
+                            // 将 data 转换为 CountingBloomFilter 的格式
+                                CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
+                                //std::string serialized_data;
+                                //cout << cbf_data;
+                                cbf.fromJson(cbf_data);
+                                CBFList[cbf_key] = cbf;  // 反序列化 CBF
 
+                        }
                     }
+                    std::cout << "CBFList data loaded successfully." << std::endl;
                 }
-                std::cout << "CBFList data loaded successfully." << std::endl;
+                else {
+                    std::cerr << "JSON root is not an array." << std::endl;
+                }
             }
             else {
-                std::cerr << "JSON root is not an array." << std::endl;
+                std::cerr << "Failed to parse CBFList.json: " << errs << std::endl;
             }
+            CBFifs.close();
         }
         else {
-            std::cerr << "Failed to parse CBFList.json: " << errs << std::endl;
+            std::cout << "CBFList.json does not exist or is empty. Initializing new map." << std::endl;
         }
-        CBFifs.close();
-    }
-    else {
-        std::cout << "CBFList.json does not exist or is empty. Initializing new map." << std::endl;
-    }
 
     CountingBloomFilter BCBF(BLOOM_BITS, BLOOM_HASHES);
     for (const auto& st : searchTokens)
@@ -191,29 +207,39 @@ void updateClient(string updateFile) {
     Json::Value root;
     //map <int, string> Dic2;
 
-    // 尝试读取现有数据
+        // 尝试读取现有数据
     std::ifstream dic1ifs("Dic1.json");
-    if (dic1ifs.is_open()) {
-        Json::CharReaderBuilder reader;
-        Json::Value root;
-        std::string errs;
 
-        // 读取并解析 JSON 文件内容
-        if (Json::parseFromStream(reader, dic1ifs, &root, &errs)) {
-            for (const auto& item : root.getMemberNames()) {
-                int l = std::stoi(item);
-                Dic1[l] = root[item].asString();
-            }
-            std::cout << "Dic1 data loaded successfully." << std::endl;
+    if (dic1ifs.is_open()) {
+        // 检查文件是否为空
+        dic1ifs.seekg(0, std::ios::end);
+        if (dic1ifs.tellg() == 0) {
+            std::cout << "Dic1.json is empty. Initializing new map." << std::endl;
+            dic1ifs.close();
         }
         else {
-            std::cerr << "Failed to parse Dic1.json: " << errs << std::endl;
+            // 文件非空，进行正常解析
+            dic1ifs.seekg(0, std::ios::beg);  // 将读取位置重置到文件开头
+            Json::CharReaderBuilder reader;
+            std::string errs;
+
+            if (Json::parseFromStream(reader, dic1ifs, &root, &errs)) {
+                for (const auto& item : root.getMemberNames()) {
+                    int l = std::stoi(item);
+                    Dic1[l] = root[item].asString();
+                }
+                std::cout << "Dic1 data loaded successfully." << std::endl;
+            }
+            else {
+                std::cerr << "Failed to parse Dic1.json: " << errs << std::endl;
+            }
+            dic1ifs.close();
         }
-        dic1ifs.close();
     }
     else {
-        std::cout << "Dic1.json does not exist or is empty. Initializing new map." << std::endl;
+        std::cout << "Dic1.json does not exist or could not be opened." << std::endl;
     }
+
 
 
 
@@ -501,45 +527,55 @@ void updateClient(string updateFile) {
     }
 
     //Up
-    // 尝试读取现有数据
-    map <string, CountingBloomFilter> CBFList;
+// 尝试读取现有数据
+    map<string, CountingBloomFilter> CBFList;
     std::ifstream CBFifs("CBFList.json");
+
     if (CBFifs.is_open()) {
-        Json::CharReaderBuilder reader;
-        Json::Value root;
-        std::string errs;
-
-        // 读取并解析 JSON 文件内容
-        if (Json::parseFromStream(reader, CBFifs, &root, &errs)) {
-            if (root.isArray()) { // 确保顶层是数组
-                for (const auto& item : root) {
-                    if (item.isObject() && item.isMember("key") && item.isMember("data")) {
-                        const std::string& cbf_key = item["key"].asString();
-                        const Json::Value& cbf_data = item["data"];
-
-                        // 将 data 转换为 CountingBloomFilter 的格式
-                        CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
-                        //std::string serialized_data;
-
-                        cbf.fromJson(cbf_data);
-                        CBFList[cbf_key] = cbf;  // 反序列化 CBF
-
-                    }
-                }
-                std::cout << "CBFList data loaded successfully." << std::endl;
-            }
-            else {
-                std::cerr << "JSON root is not an array." << std::endl;
-            }
+        // **检查文件是否为空**
+        CBFifs.seekg(0, std::ios::end);
+        if (CBFifs.tellg() == 0) {  // 文件大小为 0
+            std::cout << "CBFList.json is empty. Initializing as an empty JSON array." << std::endl;
+            CBFifs.close();
         }
         else {
-            std::cerr << "Failed to parse CBFList.json: " << errs << std::endl;
+            // **重置流位置，确保可以正确读取内容**
+            CBFifs.seekg(0, std::ios::beg);
+
+            Json::CharReaderBuilder reader;
+            Json::Value root;
+            std::string errs;
+
+            // 读取并解析 JSON 文件内容
+            if (Json::parseFromStream(reader, CBFifs, &root, &errs)) {
+                if (root.isArray()) { // 确保顶层是数组
+                    for (const auto& item : root) {
+                        if (item.isObject() && item.isMember("key") && item.isMember("data")) {
+                            const std::string& cbf_key = item["key"].asString();
+                            const Json::Value& cbf_data = item["data"];
+
+                            // 将 data 转换为 CountingBloomFilter 的格式
+                            CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
+                            cbf.fromJson(cbf_data);
+                            CBFList[cbf_key] = cbf;  // 反序列化 CBF
+                        }
+                    }
+                    std::cout << "CBFList data loaded successfully." << std::endl;
+                }
+                else {
+                    std::cerr << "JSON root is not an array." << std::endl;
+                }
+            }
+            else {
+                std::cerr << "Failed to parse CBFList.json: " << errs << std::endl;
+            }
+            CBFifs.close();
         }
-        CBFifs.close();
     }
     else {
-        std::cout << "CBFList.json does not exist or is empty. Initializing new map." << std::endl;
+        std::cout << "CBFList.json does not exist. Initializing new map." << std::endl;
     }
+
 
 
 

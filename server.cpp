@@ -3,6 +3,21 @@
 const int BLOOM_SIZE = 256; // ��¡��������С
 
 // Setup �������� Trust Center ��ȡ���ݲ����浽�ļ�
+
+void svr_reSet() {
+    std::vector<std::string> filenames = { "Dic2.json", "server_data.json"};
+    for (const std::string& file : filenames) {
+        // 以截断模式打开文件（std::ios::trunc），清空文件内容
+        std::ofstream ofs(file, std::ios::trunc);
+        if (ofs) {
+            std::cout << "Cleared: " << file << std::endl;
+        }
+        else {
+            std::cerr << "Failed to clear: " << file << std::endl;
+        }
+    }
+}
+
 void setupServerData()
 {
     std::string k_prime;
@@ -109,15 +124,14 @@ void updateServer()
                 std::cerr << "Failed to open server_data.json for writing!" << std::endl;
             }
 
-            // ���� Dic2.json �ļ�
             Json::Value dic2Data;
             std::ifstream ifsDic2("Dic2.json");
 
             if (!ifsDic2.is_open())
             {
-                // ��� Dic2.json �ļ������ڣ��򴴽�����ʼ��Ϊһ���յ� JSON ����
+                // 如果文件不存在，则创建一个新的空 JSON 文件
                 std::cout << "Dic2.json not found, creating a new empty file." << std::endl;
-                dic2Data = Json::Value(Json::objectValue); // ����һ���յ� JSON ����
+                dic2Data = Json::Value(Json::objectValue); // 空 JSON 对象
                 std::ofstream ofsDic2("Dic2.json");
                 if (ofsDic2.is_open())
                 {
@@ -134,17 +148,29 @@ void updateServer()
             }
             else
             {
-                // ��� Dic2.json �ļ������ڣ��򴽾��� JSON ����
-                Json::CharReaderBuilder reader;
-                std::string errs;
-                if (!Json::parseFromStream(reader, ifsDic2, &dic2Data, &errs))
+                // **检查文件是否为空**
+                ifsDic2.seekg(0, std::ios::end);
+                if (ifsDic2.tellg() == 0)
                 {
-                    std::cerr << "Failed to parse Dic2.json: " << errs << std::endl;
-                    return;
+                    std::cout << "Dic2.json is empty. Initializing as an empty JSON object." << std::endl;
+                    dic2Data = Json::Value(Json::objectValue); // 直接初始化为空 JSON
+                    ifsDic2.close();
                 }
-                std::cout << "Loaded Dic2.json content successfully." << std::endl;
+                else
+                {
+                    // **文件非空，正常解析 JSON**
+                    ifsDic2.seekg(0, std::ios::beg);  // 重置读取位置
+                    Json::CharReaderBuilder reader;
+                    std::string errs;
+                    if (!Json::parseFromStream(reader, ifsDic2, &dic2Data, &errs))
+                    {
+                        std::cerr << "Failed to parse Dic2.json: " << errs << std::endl;
+                        return;
+                    }
+                    std::cout << "Loaded Dic2.json content successfully." << std::endl;
+                    ifsDic2.close();
+                }
             }
-            ifsDic2.close();
 
             // ���÷�����
             httplib::Server svr;

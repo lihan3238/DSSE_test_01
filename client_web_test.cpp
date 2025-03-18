@@ -108,12 +108,17 @@ void search_handler(const httplib::Request& req, httplib::Response& res) {
     res.set_content(Json::writeString(writer, response), "application/json");
 }
 
+void cli_reset_handler(const httplib::Request&, httplib::Response& res) {
+    cli_reSet();
+    res.set_content(R"({"message": "Reset executed"})", "application/json");
+}
 
 void main() {
     svr.Get("/", index_handler);
     svr.Post("/setup", setup_data_handler);
     svr.Post("/connect", update_client_handler);
     svr.Post("/search", search_handler);
+    svr.Post("/reset", cli_reset_handler);
 
     cout << "Server running at http://localhost:8080" << endl;
     svr.listen("0.0.0.0", 8080);

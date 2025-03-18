@@ -16,3 +16,5 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words,strin
 bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& searchTokens, int BLOOM_HASHES, int BLOOM_BITS);
 
 vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int q, size_t startInd, size_t endInd);
+
+void cli_reSet();
