@@ -451,7 +451,7 @@ void searchServer()
             
             auto stop_1 = chrono::high_resolution_clock::now();
 
-            chrono::duration<double> duration_1 = chrono::duration_cast<chrono::milliseconds>(stop_1 - start);
+            chrono::duration<double, milli> duration_1 = stop_1 - start;
             cout << fixed << setprecision(3) << "Time taken by searchServer: " << duration_1.count() << " ms" << endl;
 
         }

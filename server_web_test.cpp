@@ -40,7 +40,7 @@ void svr_reset_handler(const httplib::Request&, httplib::Response& res) {
     res.set_content(R"({"message": "Reset executed"})", "application/json");
 }
 
-void main() {
+void main15632() {
     svr_cs.Get("/", svr_index_handler);
     svr_cs.Post("/setup", setup_server_handler);
     svr_cs.Post("/start", start_server_handler);
