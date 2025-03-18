@@ -109,7 +109,7 @@ void search_handler(const httplib::Request& req, httplib::Response& res) {
 }
 
 
-void main16984163() {
+void main() {
     svr.Get("/", index_handler);
     svr.Post("/setup", setup_data_handler);
     svr.Post("/connect", update_client_handler);
