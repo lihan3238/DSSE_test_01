@@ -37,14 +37,6 @@
             background-color: #0056b3;
         }
 
-        .result-box {
-            margin-top: 20px;
-            padding: 10px;
-            background: #e9ecef;
-            border-radius: 5px;
-            text-align: left;
-        }
-
         #status {
             margin-top: 20px;
             font-weight: bold;
@@ -52,28 +44,27 @@
         }
     </style>
     <script>
-        async function setupServerData() {
-            await fetch('http://127.0.0.1:8081/setup', { method: 'POST' });
-            document.getElementById("status").innerText = "服务器数据已初始化";
+        async function sendRequest(url) {
+            await fetch(url, { method: 'POST' });
         }
 
-        async function startServer() {
-            document.getElementById("status").innerText = "更新服务器已启动";
-            await fetch('http://127.0.0.1:8081/start', { method: 'POST' });
-            document.getElementById("status").innerText = "更新已执行";
+        function updateStatus() {
+            fetch('http://127.0.0.1:8081/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("status").textContent = data.status;
+
+                    setTimeout(updateStatus, 500); // 继续轮询
+                })
+                .catch(() => setTimeout(updateStatus, 500)); // 防止错误终止
         }
 
-        async function searchServer() {
-            document.getElementById("status").innerText = "搜索服务器已启动";
-            await fetch('http://127.0.0.1:8081/search', { method: 'POST' });
-            document.getElementById("status").innerText = "搜索已执行";
-        }
+        function setupServerData() { sendRequest('http://127.0.0.1:8081/setup'); }
+        function updateServer() { sendRequest('http://127.0.0.1:8081/update'); }
+        function searchServer() { sendRequest('http://127.0.0.1:8081/search'); }
+        function reSet() { sendRequest('http://127.0.0.1:8081/reset'); }
 
-        async function reSet() {
-            document.getElementById("status").innerText = "开始重置数据";
-            await fetch('http://127.0.0.1:8081/reset', { method: 'POST' });
-            document.getElementById("status").innerText = "数据已重置";
-        }
+        window.onload = updateStatus; // 页面加载后启动轮询
     </script>
 </head>
 
@@ -81,11 +72,8 @@
     <div class="container">
         <h1>Server 操作界面</h1>
         <button onclick="setupServerData()">初始化服务器数据</button>
-        <button onclick="startServer()">启动更新服务器</button>
-        <button onclick="searchServer()">启动搜索服务器</button>
         <button onclick="reSet()">重置数据</button>
-
-        <div id="status"></div>
+        <div id="status">服务器未启动</div>
     </div>
 </body>
 

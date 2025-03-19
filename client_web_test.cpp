@@ -62,6 +62,9 @@ void update_client_handler(const httplib::Request& req, httplib::Response& res) 
     }
 
     string updateFile = json_request["update_file"].asString();
+
+
+
     updateClient(updateFile);
     res.set_content(R"({"message": "Client updated successfully"})", "application/json");
 }

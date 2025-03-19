@@ -18,7 +18,7 @@ void svr_reSet() {
     }
 }
 
-void setupServerData()
+void setupServerData()//t:9000
 {
     std::string k_prime;
     std::string MK;
@@ -64,7 +64,7 @@ void setupServerData()
 #include <thread>
 
 // ���������������� Client ����
-void updateServer()
+void updateServer()//svr:9001
 {
     int l = 0;
     //while (true)
@@ -254,7 +254,7 @@ void updateServer()
 }
 
 
-void searchServer()
+void searchServer()//svr:9008
 {
     httplib::Server svr;
 
@@ -480,8 +480,8 @@ void searchServer()
             std::cout << "Sent R data to Client." << std::endl; 
 			svr.stop();
         });
-    //std::cout << "Server running at http://localhost:9008..." << std::endl;
-    //svr.listen("localhost", 9008);
-    std::cout << "Server running at http://localhost:9001..." << std::endl;
-    svr.listen("localhost", 9001);
+    std::cout << "Server running at http://localhost:9008..." << std::endl;
+    svr.listen("localhost", 9008);
+    //std::cout << "Server running at http://localhost:9001..." << std::endl;
+    //svr.listen("localhost", 9001);
 }

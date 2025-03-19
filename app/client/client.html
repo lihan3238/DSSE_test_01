@@ -111,7 +111,13 @@
         async function connectServer() {
             let updateFile = prompt("请输入更新文件名:");
             if (!updateFile || updateFile.trim() === "") return;
-
+            // 启动更新服务器
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://127.0.0.1:8081/update", true);
+            xhr.send();  // 直接发送，不等待响应
+            console.log("请求已发送，不等待响应。");
+            // 等待 1 秒
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await fetch('http://127.0.0.1:8080/connect', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -150,6 +156,14 @@
                 alert("请输入所有的单词");
                 return;
             }
+
+            // 启动搜索服务器
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://127.0.0.1:8081/search", true);
+            xhr.send();  // 直接发送，不等待响应
+            console.log("请求已发送，不等待响应。");
+            // 等待 1 秒
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
             const response = await fetch('http://127.0.0.1:8080/search', {
                 method: 'POST',

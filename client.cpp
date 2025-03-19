@@ -1,9 +1,9 @@
 #include "client.h"
 
-const int LAMBDA = 256; // °²È«²ÎÊı ¦Ë
-const int BLOOM_SIZE = 256; // ²¼Â¡¹ıÂËÆ÷´óĞ¡
-//const int BLOOM_HASHES = 20; // ²¼Â¡¹ıÂËÆ÷¹şÏ£º¯ÊıÊıÁ¿
-//const int BLOOM_BITS = 400000; // ²¼Â¡¹ıÂËÆ÷Î»Êı
+const int LAMBDA = 256; // å®‰å…¨å‚æ•° Î»
+const int BLOOM_SIZE = 256; // å¸ƒéš†è¿‡æ»¤å™¨å¤§å°
+//const int BLOOM_HASHES = 20; // å¸ƒéš†è¿‡æ»¤å™¨å“ˆå¸Œå‡½æ•°æ•°é‡
+//const int BLOOM_BITS = 400000; // å¸ƒéš†è¿‡æ»¤å™¨ä½æ•°
 
 const std::string IV = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10"; // IV as string
 //vector<string> FileInd = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"};
@@ -12,7 +12,7 @@ const std::string IV = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E
 void cli_reSet() {
         std::vector<std::string> filenames = {"Dic1.json", "CBFList.json", "client_data.json", "update.json" };
         for (const std::string& file : filenames) {
-            // ÒÔ½Ø¶ÏÄ£Ê½´ò¿ªÎÄ¼ş£¨std::ios::trunc£©£¬Çå¿ÕÎÄ¼şÄÚÈİ
+            // ä»¥æˆªæ–­æ¨¡å¼æ‰“å¼€æ–‡ä»¶ï¼ˆstd::ios::truncï¼‰ï¼Œæ¸…ç©ºæ–‡ä»¶å†…å®¹
             std::ofstream ofs(file, std::ios::trunc);
             if (ofs) {
                 std::cout << "Cleared: " << file << std::endl;
@@ -27,7 +27,7 @@ void cli_reSet() {
 bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& searchTokens, int BLOOM_HASHES, int BLOOM_BITS) {
 
 
-        // ³¢ÊÔ¶ÁÈ¡ÏÖÓĞÊı¾İ
+        // å°è¯•è¯»å–ç°æœ‰æ•°æ®
         map <string, CountingBloomFilter> CBFList;
         std::ifstream CBFifs("CBFList.json");
         if (CBFifs.is_open()) {
@@ -35,20 +35,20 @@ bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& search
             Json::Value root;
             std::string errs;
 
-            // ¶ÁÈ¡²¢½âÎö JSON ÎÄ¼şÄÚÈİ
+            // è¯»å–å¹¶è§£æ JSON æ–‡ä»¶å†…å®¹
             if (Json::parseFromStream(reader, CBFifs, &root, &errs)) {
-                if (root.isArray()) { // È·±£¶¥²ãÊÇÊı×é
+                if (root.isArray()) { // ç¡®ä¿é¡¶å±‚æ˜¯æ•°ç»„
                     for (const auto& item : root) {
                         if (item.isObject() && item.isMember("key") && item.isMember("data")) {
                             const std::string& cbf_key = item["key"].asString();
                             const Json::Value& cbf_data = item["data"];
 
-                            // ½« data ×ª»»Îª CountingBloomFilter µÄ¸ñÊ½
+                            // å°† data è½¬æ¢ä¸º CountingBloomFilter çš„æ ¼å¼
                                 CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
                                 //std::string serialized_data;
                                 //cout << cbf_data;
                                 cbf.fromJson(cbf_data);
-                                CBFList[cbf_key] = cbf;  // ·´ĞòÁĞ»¯ CBF
+                                CBFList[cbf_key] = cbf;  // ååºåˆ—åŒ– CBF
 
                         }
                     }
@@ -84,7 +84,7 @@ bool verifyCBF(const CountingBloomFilter& RCBF, std::vector<std::string>& search
 }
 
 //qwq
-// Setup º¯Êı£º´Ó Trust Center »ñÈ¡Êı¾İ²¢±£´æµ½ÎÄ¼ş
+// Setup å‡½æ•°ï¼šä» Trust Center è·å–æ•°æ®å¹¶ä¿å­˜åˆ°æ–‡ä»¶
 void setupClientData(int BLOOM_HASHES, int BLOOM_BITS) {
     std::string sk;
     std::string MK;
@@ -103,7 +103,7 @@ void setupClientData(int BLOOM_HASHES, int BLOOM_BITS) {
             MK = base64Decode(json["MK"].asString());
             //BLOOM_HASHES = json["BLOOM_HASHES"].asInt();
             //BLOOM_BITS = json["BLOOM_BITS"].asInt();
-            // ±£´æÊı¾İµ½ÎÄ¼ş
+            // ä¿å­˜æ•°æ®åˆ°æ–‡ä»¶
             Json::Value saveData;
             saveData["sk"] = json["sk"];
             saveData["MK"] = json["MK"];
@@ -127,60 +127,60 @@ void setupClientData(int BLOOM_HASHES, int BLOOM_BITS) {
     }
 }
 
-// Óë·şÎñÆ÷Í¨ĞÅµÄº¯Êı
+// ä¸æœåŠ¡å™¨é€šä¿¡çš„å‡½æ•°
 void updateClient(string updateFile) {
-    int BLOOM_HASHES = -1; // Ä¬ÈÏÖµ
-    int BLOOM_BITS = -1;   // Ä¬ÈÏÖµ
+    int BLOOM_HASHES = -1; // é»˜è®¤å€¼
+    int BLOOM_BITS = -1;   // é»˜è®¤å€¼
     std::string sk;
     std::string MK;
     std::string sk_prime;
     std::unordered_map<int, std::string> Dic1;
     std::string Words[100];
     //std::string updateFile;
-    //std::cout << "ÇëÊäÈë¸üĞÂÎÄ¼ş£º" << std::endl;
+    //std::cout << "è¯·è¾“å…¥æ›´æ–°æ–‡ä»¶ï¼š" << std::endl;
     //std::cin >> updateFile;
 
-    // ³¢ÊÔ´ò¿ªÎÄ¼şÒÔ¼ì²éÊÇ·ñ´æÔÚ
+    // å°è¯•æ‰“å¼€æ–‡ä»¶ä»¥æ£€æŸ¥æ˜¯å¦å­˜åœ¨
     std::ifstream src(updateFile, std::ios::binary);
     if (!src) {
-        std::cerr << "´íÎó£ºÎÄ¼ş " << updateFile << " ²»´æÔÚ£¬½«´´½¨Ò»¸öĞÂµÄ update.json ÎÄ¼ş£¡" << std::endl;
+        std::cerr << "é”™è¯¯ï¼šæ–‡ä»¶ " << updateFile << " ä¸å­˜åœ¨ï¼Œå°†åˆ›å»ºä¸€ä¸ªæ–°çš„ update.json æ–‡ä»¶!" << std::endl;
     }
     else {
-        std::cout << "ÕıÔÚ¸´ÖÆÎÄ¼şÄÚÈİ..." << std::endl;
+        std::cout << "æ­£åœ¨å¤åˆ¶æ–‡ä»¶å†…å®¹..." << std::endl;
     }
 
-    // ´ò¿ªÄ¿±êÎÄ¼ş£¨update.json£©£¬ÒÔĞ´ÈëÄ£Ê½
+    // æ‰“å¼€ç›®æ ‡æ–‡ä»¶ï¼ˆupdate.jsonï¼‰ï¼Œä»¥å†™å…¥æ¨¡å¼
     std::ofstream dst("update.json", std::ios::binary);
     if (!dst) {
-        std::cerr << "ÎŞ·¨´´½¨»ò´ò¿ªÄ¿±êÎÄ¼ş update.json£¡" << std::endl;
+        std::cerr << "æ— æ³•åˆ›å»ºæˆ–æ‰“å¼€ç›®æ ‡æ–‡ä»¶ update.json!" << std::endl;
         return;
     }
 
-    // Èç¹ûÔ´ÎÄ¼ş´æÔÚ£¬Ôò¸´ÖÆÄÚÈİ
+    // å¦‚æœæºæ–‡ä»¶å­˜åœ¨ï¼Œåˆ™å¤åˆ¶å†…å®¹
     if (src) {
         dst << src.rdbuf();
-        std::cout << "ÎÄ¼şÄÚÈİÒÑ¸´ÖÆµ½ update.json¡£" << std::endl;
+        std::cout << "æ–‡ä»¶å†…å®¹å·²å¤åˆ¶åˆ° update.json." << std::endl;
     }
     else {
-        std::cout << "ĞÂÎÄ¼ş update.json ÒÑ´´½¨£¬µ±Ç°Îª¿Õ¡£" << std::endl;
+        std::cout << "æ–°æ–‡ä»¶ update.json å·²åˆ›å»ºï¼Œå½“å‰ä¸ºç©º." << std::endl;
     }
 
-    // ¹Ø±ÕÎÄ¼şÁ÷
+    // å…³é—­æ–‡ä»¶æµ
     src.close();
     dst.close();
 
-    // È·±£Ğ´Èë³É¹¦
+    // ç¡®ä¿å†™å…¥æˆåŠŸ
     std::ifstream check("update.json");
     if (!check || check.peek() == EOF) {
-        std::cerr << "¾¯¸æ£ºupdate.json ¿ÉÄÜÎª¿Õ»òĞ´ÈëÊ§°Ü£¡" << std::endl;
+        std::cerr << "è­¦å‘Šï¼šupdate.json å¯èƒ½ä¸ºç©ºæˆ–å†™å…¥å¤±è´¥!" << std::endl;
     }
     else {
-        std::cout << "update.json Ğ´Èë³É¹¦£¡" << std::endl;
+        std::cout << "update.json å†™å…¥æˆåŠŸ!" << std::endl;
     }
     check.close();
 
     int l = 0;
-    // ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ£¬¼ÓÔØÊı¾İ
+    // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼ŒåŠ è½½æ•°æ®
     std::ifstream ifs("client_data.json");
     if (ifs.is_open()) {
         Json::CharReaderBuilder reader;
@@ -199,27 +199,27 @@ void updateClient(string updateFile) {
                 l = 1;
             }
         }
-        ifs.close(); // ¹Ø±ÕÎÄ¼ş
+        ifs.close(); // å…³é—­æ–‡ä»¶
     }
 
 
-// ³¢ÊÔ¼ÓÔØÊı¾İ
+// å°è¯•åŠ è½½æ•°æ®
     Json::Value root;
     //map <int, string> Dic2;
 
-        // ³¢ÊÔ¶ÁÈ¡ÏÖÓĞÊı¾İ
+        // å°è¯•è¯»å–ç°æœ‰æ•°æ®
     std::ifstream dic1ifs("Dic1.json");
 
     if (dic1ifs.is_open()) {
-        // ¼ì²éÎÄ¼şÊÇ·ñÎª¿Õ
+        // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦ä¸ºç©º
         dic1ifs.seekg(0, std::ios::end);
         if (dic1ifs.tellg() == 0) {
             std::cout << "Dic1.json is empty. Initializing new map." << std::endl;
             dic1ifs.close();
         }
         else {
-            // ÎÄ¼ş·Ç¿Õ£¬½øĞĞÕı³£½âÎö
-            dic1ifs.seekg(0, std::ios::beg);  // ½«¶ÁÈ¡Î»ÖÃÖØÖÃµ½ÎÄ¼ş¿ªÍ·
+            // æ–‡ä»¶éç©ºï¼Œè¿›è¡Œæ­£å¸¸è§£æ
+            dic1ifs.seekg(0, std::ios::beg);  // å°†è¯»å–ä½ç½®é‡ç½®åˆ°æ–‡ä»¶å¼€å¤´
             Json::CharReaderBuilder reader;
             std::string errs;
 
@@ -245,7 +245,7 @@ void updateClient(string updateFile) {
 
     Dic1[l] = generateRandomKey(LAMBDA / 8);
 
-    // ±£´æ¸üĞÂºóµÄ l Öµ»ØÎÄ¼ş
+    // ä¿å­˜æ›´æ–°åçš„ l å€¼å›æ–‡ä»¶
     Json::Value updatedData;
     updatedData["sk"] = base64Encode(sk);
     updatedData["MK"] = base64Encode(MK);
@@ -282,7 +282,7 @@ void updateClient(string updateFile) {
 
     std::map<std::string, std::vector<int>> index;
 
-    // ´ò¿ª²¢¶ÁÈ¡JSONÎÄ¼ş
+    // æ‰“å¼€å¹¶è¯»å–JSONæ–‡ä»¶
     std::ifstream ifs2("update.json");
     if (!ifs2.is_open()) {
         std::cerr << "Failed to open the JSON file." << std::endl;
@@ -292,7 +292,7 @@ void updateClient(string updateFile) {
     Json::Reader reader;
     Json::Value jsonData;
 
-    // ½âÎö JSON ÎÄ¼ş
+    // è§£æ JSON æ–‡ä»¶
     if (!reader.parse(ifs2, jsonData)) {
         std::cerr << "Failed to parse JSON data." << std::endl;
         return;
@@ -301,15 +301,15 @@ void updateClient(string updateFile) {
     int DB[10000] = {};
     ifs2.close();
 
-    // ±éÀú JSON ÎÄ¼şµÄ¼ü²¢´æÈë Words Êı×é
+    // éå† JSON æ–‡ä»¶çš„é”®å¹¶å­˜å…¥ Words æ•°ç»„
     int wc = 0;
     for (const auto& key : jsonData.getMemberNames()) {
         if (key.empty()) {
             std::cout << "Encountered empty string, stopping the loop." << std::endl;
-            break; // Ìø³öÑ­»·
+            break; // è·³å‡ºå¾ªç¯
         }
         if (wc < 100) {
-            Words[wc++] = key; // ´æ´¢¼üµ½ Words Êı×é
+            Words[wc++] = key; // å­˜å‚¨é”®åˆ° Words æ•°ç»„
         }
         else {
             std::cerr << "Words array size exceeded maximum limit." << std::endl;
@@ -318,25 +318,25 @@ void updateClient(string updateFile) {
     }
 
     std::string word;
-    // ±éÀú Words Êı×éÖĞµÄÃ¿¸öµ¥´Ê£¬²éÕÒ JSON ÖĞ¶ÔÓ¦µÄÊı¾İ
+    // éå† Words æ•°ç»„ä¸­çš„æ¯ä¸ªå•è¯ï¼ŒæŸ¥æ‰¾ JSON ä¸­å¯¹åº”çš„æ•°æ®
     for (int i = 0; i < wc; i++) {
         word = Words[i];
         if (word.empty()) {
             std::cout << "Encountered empty string, stopping the loop." << std::endl;
-            break; // Ìø³öÑ­»·
+            break; // è·³å‡ºå¾ªç¯
         }
-        // ¼ì²é JSON ÖĞÊÇ·ñÓĞ¸Ãµ¥´Ê
+        // æ£€æŸ¥ JSON ä¸­æ˜¯å¦æœ‰è¯¥å•è¯
         if (jsonData.isMember(word)) {
             const Json::Value& wordData = jsonData[word];
             std::vector<int> numbers;
-			//DB =0 ;  // ÖØÖÃ DB ¼ÆÊı
-            // »ñÈ¡¸Ãµ¥´Ê¶ÔÓ¦Êı×éµÄËùÓĞÔªËØ
+			//DB =0 ;  // é‡ç½® DB è®¡æ•°
+            // è·å–è¯¥å•è¯å¯¹åº”æ•°ç»„çš„æ‰€æœ‰å…ƒç´ 
             for (const auto& num : wordData) {
                 numbers.push_back(num.asInt());
-                DB[i]++;  // DB¼ÆÊı
+                DB[i]++;  // DBè®¡æ•°
             }
 
-            // ½«¸Ãµ¥´Ê¶ÔÓ¦µÄÊı×ÖÁĞ±í´æÈë index
+            // å°†è¯¥å•è¯å¯¹åº”çš„æ•°å­—åˆ—è¡¨å­˜å…¥ index
             index[word] = numbers;
             //qwqstd::cout << "geted Word: " << word << ", Numbers: " << "DB: " << DB[i] << endl;
             //qwqfor (const auto& num : numbers) {
@@ -351,16 +351,16 @@ void updateClient(string updateFile) {
     std::map<std::string, std::string> connectorData;
     std::map<std::string, std::string> indopData;
 
-    // ¼ÆÊ±µã
+    // è®¡æ—¶ç‚¹
 
 	auto start = chrono::high_resolution_clock::now();
 
     for (int i = 0; i < wc; i++) {
         word = Words[i];
-        // È·±£¸Ãµ¥´ÊÔÚ index ÖĞ´æÔÚ
+        // ç¡®ä¿è¯¥å•è¯åœ¨ index ä¸­å­˜åœ¨
         if (index.find(word) == index.end()) {
             std::cerr << "Warning: Word '" << word << "' not found in index, skipping..." << std::endl;
-            continue; // Ìø¹ıÎ´ÔÚ index ÖĞÕÒµ½µÄµ¥´Ê
+            continue; // è·³è¿‡æœªåœ¨ index ä¸­æ‰¾åˆ°çš„å•è¯
         }
         k = word;
         f1(k, sk);
@@ -397,7 +397,7 @@ void updateClient(string updateFile) {
 
         //qwqstd::cout << "skey: " << skey << endl;
 
-        // ¹¹Ôì CBFj,vl
+        // æ„é€  CBFj,vl
         CountingBloomFilter CBFj_vl(BLOOM_BITS, BLOOM_HASHES);
         std::string tmp3;
 
@@ -405,14 +405,14 @@ void updateClient(string updateFile) {
             //qwqstd::cout << "m: " << m << " index[word][m]: " << index[word][m] << endl;
             std::string indwj_vl_m = intTo28ByteString(index[word][m]);
 
-            std::string opwj_vl_m = "addw"; // ¼Ù¶¨²Ù×÷ÀàĞÍÎª addw
+            std::string opwj_vl_m = "addw"; // å‡å®šæ“ä½œç±»å‹ä¸º addw
 
-            // ¸üĞÂ CBFj,vl
+            // æ›´æ–° CBFj,vl
 
 			//cout <<word << " indwj_vl_m: " << indwj_vl_m << " opwj_vl_m: " << opwj_vl_m << endl;
             CBFj_vl.update(indwj_vl_m, opwj_vl_m);
             tmp3 = opwj_vl_m;
-            // Éú³É¼ÓÃÜµÄ indopwj_vl,m
+            // ç”ŸæˆåŠ å¯†çš„ indopwj_vl,m
             tmp3.append(indwj_vl_m);
 
             //qwqstd::cout << "indwj_vl_m: " << indwj_vl_m << " opwj_vl_m: " << opwj_vl_m << " tmp3: " << tmp3 << endl;
@@ -423,7 +423,7 @@ void updateClient(string updateFile) {
 
             //qwqstd::cout << "indopwj_vl_m: " << indopwj_vl_m << endl;
 
-            // Éú³É indop_key ºÍ indop_value
+            // ç”Ÿæˆ indop_key å’Œ indop_value
             std::string indop_key = h34(st[Dic1[l]], m, 3);
 
             //qwqstd::cout << "indop_key: " << indop_key << endl;
@@ -440,7 +440,7 @@ void updateClient(string updateFile) {
         Up.push_back(std::make_tuple(k, l, CBFj_vl));
     }
 
-	// ¼ÆÊ±µã
+	// è®¡æ—¶ç‚¹
     auto stop_1 = chrono::high_resolution_clock::now();
     chrono::duration<double, milli> duration_1 = stop_1 - start;
 	cout << fixed << setprecision(3) << "Time taken by updateClient: " << duration_1.count() << " ms" << endl;
@@ -449,23 +449,23 @@ void updateClient(string updateFile) {
     httplib::Client serverCli("http://127.0.0.1:9001");
     Json::Value data;
 
-    // Ê¹ÓÃ´«Í³µÄ·½Ê½±éÀú connectorData
+    // ä½¿ç”¨ä¼ ç»Ÿçš„æ–¹å¼éå† connectorData
     for (auto it = connectorData.begin(); it != connectorData.end(); ++it) {
         Json::Value item;
 
-        // ½« key ºÍ value ×ªÎª Base64 ×Ö·û´®²¢¼ÓÈë JSON
-        item["connector_key"] = base64Encode(it->first);   // it->first Îª key
-        item["connector_value"] = base64Encode(it->second); // it->second Îª value
+        // å°† key å’Œ value è½¬ä¸º Base64 å­—ç¬¦ä¸²å¹¶åŠ å…¥ JSON
+        item["connector_key"] = base64Encode(it->first);   // it->first ä¸º key
+        item["connector_value"] = base64Encode(it->second); // it->second ä¸º value
 
-        data.append(item);  // ½« item ¼ÓÈëµ½ JSON Êı×é
+        data.append(item);  // å°† item åŠ å…¥åˆ° JSON æ•°ç»„
     }
 
     for (auto it = indopData.begin(); it != indopData.end(); ++it) {
         Json::Value item;
-        // ½« key ºÍ value ×ªÎª Base64 ×Ö·û´®²¢¼ÓÈë JSON
-        item["indop_key"] = base64Encode(it->first);   // it->first Îª key
-        item["indop_value"] = base64Encode(it->second); // it->second Îª value
-        data.append(item);  // ½« item ¼ÓÈëµ½ JSON Êı×é
+        // å°† key å’Œ value è½¬ä¸º Base64 å­—ç¬¦ä¸²å¹¶åŠ å…¥ JSON
+        item["indop_key"] = base64Encode(it->first);   // it->first ä¸º key
+        item["indop_value"] = base64Encode(it->second); // it->second ä¸º value
+        data.append(item);  // å°† item åŠ å…¥åˆ° JSON æ•°ç»„
     }
 
     Json::StreamWriterBuilder writer;
@@ -479,20 +479,20 @@ void updateClient(string updateFile) {
         std::cerr << "Failed to send Connector data to CS." <<res->status<< std::endl;
     }
 
- //   //Çø¿éÁ´
+ //   //åŒºå—é“¾
  //   // 
- //   // ³¢ÊÔ¼ÓÔØÊı¾İ
+ //   // å°è¯•åŠ è½½æ•°æ®
  //   Json::Value root_bc;
 	////map <int, string> Dic2;
 
- //   // ³¢ÊÔ¶ÁÈ¡ÏÖÓĞÊı¾İ
+ //   // å°è¯•è¯»å–ç°æœ‰æ•°æ®
  //   std::ifstream dic1ifs_bc("Dic1.json");
  //   if (dic1ifs.is_open()) {
  //       Json::CharReaderBuilder reader_bc;
  //       Json::Value root_bc;
  //       std::string errs_bc;
 
- //       // ¶ÁÈ¡²¢½âÎö JSON ÎÄ¼şÄÚÈİ
+ //       // è¯»å–å¹¶è§£æ JSON æ–‡ä»¶å†…å®¹
  //       if (Json::parseFromStream(reader_bc, dic1ifs_bc, &root_bc, &errs_bc)) {
  //           for (const auto& item : root.getMemberNames()) {
  //               int l_bc = std::stoi(item);
@@ -509,12 +509,12 @@ void updateClient(string updateFile) {
  //       std::cout << "Dic1.json does not exist or is empty. Initializing new map." << std::endl;
  //   }
 
-    // ½« map Êı¾İ´æÈë JSON ¶ÔÏó
+    // å°† map æ•°æ®å­˜å…¥ JSON å¯¹è±¡
     for (const auto& item : Dic1) {
         root[std::to_string(item.first)] = item.second;
     }
 
-    // ±£´æµ½ Dic1.json ÎÄ¼ş
+    // ä¿å­˜åˆ° Dic1.json æ–‡ä»¶
     std::ofstream dic1ofs("Dic1.json");
     if (dic1ofs.is_open()) {
         Json::StreamWriterBuilder writer;
@@ -527,37 +527,37 @@ void updateClient(string updateFile) {
     }
 
     //Up
-// ³¢ÊÔ¶ÁÈ¡ÏÖÓĞÊı¾İ
+// å°è¯•è¯»å–ç°æœ‰æ•°æ®
     map<string, CountingBloomFilter> CBFList;
     std::ifstream CBFifs("CBFList.json");
 
     if (CBFifs.is_open()) {
-        // **¼ì²éÎÄ¼şÊÇ·ñÎª¿Õ**
+        // **æ£€æŸ¥æ–‡ä»¶æ˜¯å¦ä¸ºç©º**
         CBFifs.seekg(0, std::ios::end);
-        if (CBFifs.tellg() == 0) {  // ÎÄ¼ş´óĞ¡Îª 0
+        if (CBFifs.tellg() == 0) {  // æ–‡ä»¶å¤§å°ä¸º 0
             std::cout << "CBFList.json is empty. Initializing as an empty JSON array." << std::endl;
             CBFifs.close();
         }
         else {
-            // **ÖØÖÃÁ÷Î»ÖÃ£¬È·±£¿ÉÒÔÕıÈ·¶ÁÈ¡ÄÚÈİ**
+            // **é‡ç½®æµä½ç½®ï¼Œç¡®ä¿å¯ä»¥æ­£ç¡®è¯»å–å†…å®¹**
             CBFifs.seekg(0, std::ios::beg);
 
             Json::CharReaderBuilder reader;
             Json::Value root;
             std::string errs;
 
-            // ¶ÁÈ¡²¢½âÎö JSON ÎÄ¼şÄÚÈİ
+            // è¯»å–å¹¶è§£æ JSON æ–‡ä»¶å†…å®¹
             if (Json::parseFromStream(reader, CBFifs, &root, &errs)) {
-                if (root.isArray()) { // È·±£¶¥²ãÊÇÊı×é
+                if (root.isArray()) { // ç¡®ä¿é¡¶å±‚æ˜¯æ•°ç»„
                     for (const auto& item : root) {
                         if (item.isObject() && item.isMember("key") && item.isMember("data")) {
                             const std::string& cbf_key = item["key"].asString();
                             const Json::Value& cbf_data = item["data"];
 
-                            // ½« data ×ª»»Îª CountingBloomFilter µÄ¸ñÊ½
+                            // å°† data è½¬æ¢ä¸º CountingBloomFilter çš„æ ¼å¼
                             CountingBloomFilter cbf(BLOOM_BITS, BLOOM_HASHES);
                             cbf.fromJson(cbf_data);
-                            CBFList[cbf_key] = cbf;  // ·´ĞòÁĞ»¯ CBF
+                            CBFList[cbf_key] = cbf;  // ååºåˆ—åŒ– CBF
                         }
                     }
                     std::cout << "CBFList data loaded successfully." << std::endl;
@@ -626,7 +626,7 @@ void updateClient(string updateFile) {
             // Perform any additional logic, like sending responses, logging, etc.
         }
 
-		// ±£´æ¸üĞÂºóµÄ CBFList Êı¾İ
+		// ä¿å­˜æ›´æ–°åçš„ CBFList æ•°æ®
 		Json::Value cbfData;
         
 
@@ -651,20 +651,20 @@ void updateClient(string updateFile) {
 }
 
 std::vector<std::string> searchToken(const std::vector<std::string>& words, string Q, int q) {
-    int BLOOM_HASHES = -1; // Ä¬ÈÏÖµ
-    int BLOOM_BITS = -1;   // Ä¬ÈÏÖµ
+    int BLOOM_HASHES = -1; // é»˜è®¤å€¼
+    int BLOOM_BITS = -1;   // é»˜è®¤å€¼
     std::map<int, std::string> Dic1;
     int l_n = 0;
     std::vector<std::string> searchTokens;
 
-    // ³¢ÊÔ¶ÁÈ¡ÏÖÓĞÊı¾İ
+    // å°è¯•è¯»å–ç°æœ‰æ•°æ®
     std::ifstream dic1ifs("Dic1.json");
     if (dic1ifs.is_open()) {
         Json::CharReaderBuilder reader;
         Json::Value root;
         std::string errs;
 
-        // ¶ÁÈ¡²¢½âÎö JSON ÎÄ¼şÄÚÈİ
+        // è¯»å–å¹¶è§£æ JSON æ–‡ä»¶å†…å®¹
         if (Json::parseFromStream(reader, dic1ifs, &root, &errs)) {
             for (const auto& item : root.getMemberNames()) {
                 int l = std::stoi(item);
@@ -688,7 +688,7 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
     std::string sk;
     std::string MK;
 
-    // ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ£¬¼ÓÔØÊı¾İ
+    // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼ŒåŠ è½½æ•°æ®
     std::ifstream ifs("client_data.json");
     if (ifs.is_open()) {
         Json::CharReaderBuilder reader;
@@ -701,31 +701,31 @@ std::vector<std::string> searchToken(const std::vector<std::string>& words, stri
             BLOOM_HASHES = savedData["BLOOM_HASHES"].asInt();
             BLOOM_BITS = savedData["BLOOM_BITS"].asInt();
         }
-        ifs.close(); // ¹Ø±ÕÎÄ¼ş
+        ifs.close(); // å…³é—­æ–‡ä»¶
     }
 
     std::string sk_prime = xorKeys(MK, sk);
     std::string k_prime(sk_prime.size(), '\0');
-    f1(k_prime, sk_prime); // ¼ÓÃÜ´¦Àí
+    f1(k_prime, sk_prime); // åŠ å¯†å¤„ç†
 
-    // ¶ÔÃ¿¸öµ¥´Ê½øĞĞ´¦Àí
+    // å¯¹æ¯ä¸ªå•è¯è¿›è¡Œå¤„ç†
     for (const auto& word : words) {
         std::string k = word;
-        f1(k, sk); // ÔÙ´Î¼ÓÃÜ
-        searchTokens.push_back(xorKeys(xorKeys(k, k_prime), vl)); // Éú³ÉËÑË÷ÁîÅÆ
+        f1(k, sk); // å†æ¬¡åŠ å¯†
+        searchTokens.push_back(xorKeys(xorKeys(k, k_prime), vl)); // ç”Ÿæˆæœç´¢ä»¤ç‰Œ
 		std::cout << searchTokens[0] << endl;
     }
 
-    return searchTokens; // ·µ»Ø´¦ÀíºóµÄËÑË÷ÁîÅÆ
+    return searchTokens; // è¿”å›å¤„ç†åçš„æœç´¢ä»¤ç‰Œ
 }
 
 
 vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int q,size_t startInd,size_t endInd) {
-    int BLOOM_HASHES = -1; // Ä¬ÈÏÖµ
-    int BLOOM_BITS = -1;   // Ä¬ÈÏÖµ
+    int BLOOM_HASHES = -1; // é»˜è®¤å€¼
+    int BLOOM_BITS = -1;   // é»˜è®¤å€¼
     //size_t startInd=0;
     //size_t endInd = 0;
-        // ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ£¬¼ÓÔØÊı¾İ
+        // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼ŒåŠ è½½æ•°æ®
     std::ifstream ifs("client_data.json");
     if (ifs.is_open()) {
         Json::CharReaderBuilder reader;
@@ -737,19 +737,19 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
             BLOOM_HASHES = savedData["BLOOM_HASHES"].asInt();
             BLOOM_BITS = savedData["BLOOM_BITS"].asInt();
         }
-        ifs.close(); // ¹Ø±ÕÎÄ¼ş
+        ifs.close(); // å…³é—­æ–‡ä»¶
     }
 
     map <int, string> Dic1;
 
-    // ³¢ÊÔ¶ÁÈ¡ÏÖÓĞÊı¾İ
+    // å°è¯•è¯»å–ç°æœ‰æ•°æ®
     std::ifstream dic1ifs("Dic1.json");
     if (dic1ifs.is_open()) {
         Json::CharReaderBuilder reader;
         Json::Value root;
         std::string errs;
 
-        // ¶ÁÈ¡²¢½âÎö JSON ÎÄ¼şÄÚÈİ
+        // è¯»å–å¹¶è§£æ JSON æ–‡ä»¶å†…å®¹
         if (Json::parseFromStream(reader, dic1ifs, &root, &errs)) {
             for (const auto& item : root.getMemberNames()) {
                 int l = std::stoi(item);
@@ -776,11 +776,11 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
  //   }
  //   jsonData += "] }";
 
-    // ¹¹½¨ JSON Êı¾İ
+    // æ„å»º JSON æ•°æ®
     Json::Value jsonData;
     Json::Value tokens(Json::arrayValue);
 
-    // ½«ËÑË÷ÁîÅÆ±àÂëÎª Base64 ²¢Ìí¼Óµ½ JSON Êı×éÖĞ
+    // å°†æœç´¢ä»¤ç‰Œç¼–ç ä¸º Base64 å¹¶æ·»åŠ åˆ° JSON æ•°ç»„ä¸­
     for (const auto& token : searchTokens) {
         tokens.append(base64Encode(token));
     }
@@ -789,8 +789,9 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
     Json::StreamWriterBuilder writertoken;
     std::string jsonString = Json::writeString(writertoken, jsonData);
 
-    // Ê¹ÓÃ httplib ·¢ËÍ HTTP ÇëÇó
-    httplib::Client cli("http://localhost:9001");  // ·şÎñÆ÷µØÖ·ºÍ¶Ë¿Ú
+    // ä½¿ç”¨ httplib å‘é€ HTTP è¯·æ±‚
+    //httplib::Client cli("http://localhost:9001");  // æœåŠ¡å™¨åœ°å€å’Œç«¯å£
+    httplib::Client cli("http://localhost:9008");  // æœåŠ¡å™¨åœ°å€å’Œç«¯å£
     auto res = cli.Post("/search", jsonString, "application/json");
 
     if (res && res->status == 200) {
@@ -848,7 +849,7 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
             int l = item.second;
 
 
-            //ÔÚlÎª1ÏÂ
+            //åœ¨lä¸º1ä¸‹
             std::string indopwjvl = "";
              indexNum = 0;
             for (const auto& str : Rwjvl) {
@@ -856,7 +857,7 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
                 indopwjvl = Rwjvl[indexNum-1];
                 std::string sk;
                 std::string MK;
-                // ¼ì²éÎÄ¼şÊÇ·ñ´æÔÚ£¬¼ÓÔØÊı¾İ
+                // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼ŒåŠ è½½æ•°æ®
                 std::ifstream ifs("client_data.json");
                 if (ifs.is_open()) {
                     Json::CharReaderBuilder reader;
@@ -866,11 +867,11 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
                         sk = base64Decode(savedData["sk"].asString());
                         MK = base64Decode(savedData["MK"].asString());
                     }
-                    ifs.close(); // ¹Ø±ÕÎÄ¼ş
+                    ifs.close(); // å…³é—­æ–‡ä»¶
                 }
                 std::string sk_prime = xorKeys(MK, sk);
                 std::string k_prime(sk_prime.size(), '\0');
-                f1(k_prime, sk_prime); // ¼ÓÃÜ´¦Àí
+                f1(k_prime, sk_prime); // åŠ å¯†å¤„ç†
                 //std::string k = xorKeys(xorKeys(st, k_prime), Dic1[l]);
                 std::string skey = f2(Dic1[l], sk, 32);
 
@@ -919,7 +920,7 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
 
         //Ind = Ind - del;
         for (const std::string& item : del) {
-            // ÒÆ³ı Ind ÖĞËùÓĞµÈÓÚ item µÄÔªËØ
+            // ç§»é™¤ Ind ä¸­æ‰€æœ‰ç­‰äº item çš„å…ƒç´ 
             Ind.erase(std::remove(Ind.begin(), Ind.end(), item), Ind.end());
         }
 
@@ -947,10 +948,10 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
 
 
 
-        //std::cout << "ÊäÈë×ÜË÷Òı·¶Î§£º" << endl;
-        //std::cout << "¿ªÊ¼£º" << endl;
+        //std::cout << "è¾“å…¥æ€»ç´¢å¼•èŒƒå›´ï¼š" << endl;
+        //std::cout << "å¼€å§‹ï¼š" << endl;
         //cin >> startInd;
-        //std::cout << "½áÊø£º" << endl;
+        //std::cout << "ç»“æŸï¼š" << endl;
         //cin >> endInd;
 
         for (size_t i=startInd;i<=endInd;i++) {
