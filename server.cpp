@@ -1,8 +1,8 @@
 #include "server.h"
 
-const int BLOOM_SIZE = 256; // ��¡��������С
+const int BLOOM_SIZE = 256; // 
 
-// Setup �������� Trust Center ��ȡ���ݲ����浽�ļ�
+// Setup Trust Center 
 
 void svr_reSet()
 {
@@ -67,7 +67,7 @@ void setupServerData() // t:9000
 
 #include <thread>
 
-// ���������������� Client ����
+//  Client 
 void updateServer() // svr:9001
 {
     int l = 0;
@@ -78,7 +78,7 @@ void updateServer() // svr:9001
         std::string k_prime;
         std::string MK;
 
-        // ���Լ�������
+
         std::ifstream ifs("server_data.json");
         if (ifs.is_open())
         {
@@ -104,7 +104,7 @@ void updateServer() // svr:9001
             {
                 throw std::runtime_error("Error parsing server_data.json: " + errs);
             }
-            ifs.close(); // �ر��ļ�
+            ifs.close(); 
         }
         else
         {
@@ -178,55 +178,52 @@ void updateServer() // svr:9001
             }
         }
 
-        // ���÷�����
+        // 发送conn和indop到server
         httplib::Server svr;
 
         svr.Post("/send_conn_indop_data", [&dic2Data, &svr](const httplib::Request &req, httplib::Response &res)
                  {
-                // ʹ�� JsonCpp �������յ��� JSON ����
                 Json::Value jsonData;
                 Json::Reader reader;
 
-                // ���Խ����������е� JSON ����
                 if (reader.parse(req.body, jsonData)) {
-                    // ��ӡ���յ�������
                     std::cout << "Received data from client: " << req.body << std::endl;
 
-                    // ���������� connectorData
+                    // connectorData
 
 
                         for (const auto& item : jsonData) {
                             std::string connector_key = base64Decode(item["connector_key"].asString());
                             std::string connector_value = base64Decode(item["connector_value"].asString());
 
-                            // �� connector_key �� connector_value תΪ Base64 �ַ���
+                            //  connector_key 和 connector_value  Base64 编码
                             std::string connector_key_str = base64Encode(connector_key);
                             std::string connector_value_str = base64Encode(connector_value);
 
-                            // �� Base64 ������ַ�����Ϊ��ֵ�Ա��浽 dic2Data
+                            //  Base64 后存到 dic2Data
                             dic2Data[connector_key_str] = connector_value_str;
                         }
 
 
-                    // ���������� indopData
+                    //  indopData
 
 
                         for (const auto& item : jsonData) {
                             std::string indop_key = base64Decode(item["indop_key"].asString());
                             std::string indop_value = base64Decode(item["indop_value"].asString());
 
-                            // �� indop_key �� indop_value תΪ Base64 �ַ���
+                            // �� indop_key 和 indop_value Base64 编码
                             std::string indop_key_str = base64Encode(indop_key);
                             std::string indop_value_str = base64Encode(indop_value);
 
-                            // �� Base64 ������ַ�����Ϊ��ֵ�Ա��浽 dic1Data
+                            // Base64 后存到 dic2Data
                             dic2Data[indop_key_str] = indop_value_str;
                         }
 
 
                     std::cout << "Saving data..." << std::endl;
 
-                    // ���� dic1Data �� Dic1.json
+
                     std::ofstream ofsDic2("Dic2.json");
                     if (ofsDic2.is_open()) {
                         Json::StreamWriterBuilder writer;
@@ -238,7 +235,6 @@ void updateServer() // svr:9001
                         std::cerr << "Failed to open Dic2.json for writing." << std::endl;
                     }
 
-                    // ���سɹ���Ӧ
                     res.set_content("Data received and saved successfully.", "text/plain");
                     svr.stop();
                     //return;
@@ -249,7 +245,6 @@ void updateServer() // svr:9001
                     res.set_content("Invalid JSON format.", "text/plain");
                 } });
 
-        // ����������
         svr.listen("127.0.0.1", 9001);
     }
     catch (const std::exception &e)
@@ -276,11 +271,9 @@ void searchServer() // svr:9008
                      Json::Value root;
                      std::string errs;
 
-                     // �����յ��� JSON ����
                      std::istringstream ss(req.body);
                      if (Json::parseFromStream(reader, ss, &root, &errs))
                      {
-                         // ��ȡ tokens ����
                          const Json::Value tokens = root["tokens"];
                          for (const auto &token : tokens)
                          {
@@ -288,7 +281,6 @@ void searchServer() // svr:9008
                              // qwqstd::cout << "Received token: " << token.asString() << std::endl;
                          }
 
-                         // ������Ӧ
                          res.set_content("Received search tokens", "text/plain");
                      }
                      else
@@ -303,10 +295,8 @@ void searchServer() // svr:9008
                      res.set_content("Server error", "text/plain");
                  }
 
-                 // ������������
                  map<string, string> Dic2;
-
-                 // �� Dic2.json �ļ�
+                 
                  std::ifstream ifs("Dic2.json");
 
                  if (!ifs.is_open())
@@ -315,17 +305,14 @@ void searchServer() // svr:9008
                      return;
                  }
 
-                 // ʹ�� JsonCpp �����ļ�����
                  Json::CharReaderBuilder reader;
                  Json::Value dic2Data;
                  std::string errs;
 
-                 // ���� JSON ����
                  if (Json::parseFromStream(reader, ifs, &dic2Data, &errs))
                  {
                      std::cout << "Dic2.json data loaded successfully." << std::endl;
 
-                     // ��ӡ���м�ֵ��
                      for (const auto &key : dic2Data.getMemberNames())
                      {
                          Dic2[key] = dic2Data[key].asString();
@@ -335,10 +322,10 @@ void searchServer() // svr:9008
                  {
                      std::cerr << "Error parsing Dic2.json: " << errs << std::endl;
                  }
-                 ifs.close(); // �ر��ļ�
+                 ifs.close(); 
 
                  int l = 0;
-                 // ����ļ��Ƿ���ڣ���������
+
                  std::ifstream sifs("server_data.json");
                  if (sifs.is_open())
                  {
@@ -352,7 +339,7 @@ void searchServer() // svr:9008
                              l = savedData["l"].asInt();
                          }
                      }
-                     sifs.close(); // �ر��ļ�
+                     sifs.close(); 
                  }
 
                  // std::vector<std::pair<std::vector<string>, int>> Rsearch;
