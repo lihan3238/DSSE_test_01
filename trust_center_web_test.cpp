@@ -40,7 +40,7 @@ void startTrustCenterAPI(const httplib::Request&, httplib::Response& res) {
 }
 
 // Æô¶¯ HTTP ·þÎñ
-int main() {
+int main41241() {
     svr_tc.Get("/", tc_index_handler);
     svr_tc.Get("/start_trust", startTrustCenterAPI);
 

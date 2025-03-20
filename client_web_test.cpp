@@ -141,7 +141,7 @@ void cli_reset_handler(const httplib::Request&, httplib::Response& res) {
     res.set_content(R"({"message": "Reset executed"})", "application/json");
 }
 
-void main41() {
+void main() {
     svr.Get("/", index_handler);
     svr.Post("/setup", setup_data_handler);
     svr.Post("/connect", update_client_handler);

@@ -90,30 +90,33 @@
             <button onclick="search()">执行搜索</button>
         </div>
 
-        <div id="search_time_cost" class="result-box"></div>
-        <div id="search-results" class="result-box"></div>
+        <div id="search_time_cost" class="result-box" style="display: none;"></div>
+        <div id="search-results" class="result-box" style="display: none;"></div>
     </div>
 
     <script>
         function resetSetupUI() {
-            document.getElementById("search_time_cost").innerHTML = "";
-            document.getElementById("search-results").innerHTML = "";
+
+            document.getElementById("search_time_cost").style.display = "none";
+            document.getElementById("search-results").style.display = "none";
             document.getElementById("setup-form").style.display = "none";
             document.getElementById("update-form").style.display = "none";
             document.getElementById("search-form").style.display = "none";
         }
 
         function resetUpdateUI() {
-            document.getElementById("search_time_cost").innerHTML = "";
-            document.getElementById("search-results").innerHTML = "";
+
+            document.getElementById("search_time_cost").style.display = "none";
+            document.getElementById("search-results").style.display = "none";
             document.getElementById("setup-form").style.display = "none";
             document.getElementById("update-form").style.display = "none";
             document.getElementById("search-form").style.display = "none";
         }
 
         function resetSearchUI() {
-            document.getElementById("search_time_cost").innerHTML = "";
-            document.getElementById("search-results").innerHTML = "";
+
+            document.getElementById("search_time_cost").style.display = "none";
+            document.getElementById("search-results").style.display = "none";
             document.getElementById("setup-form").style.display = "none";
             document.getElementById("update-form").style.display = "none";
             document.getElementById("search-form").style.display = "none";
@@ -146,7 +149,7 @@
             });
 
             alert('客户端数据已初始化');
-            document.getElementById("bloom-inputs").style.display = "none";
+            document.getElementById("setup-form").style.display = "none";
         }
 
         function toggleUpdateForm() {
@@ -178,7 +181,8 @@
                 body: JSON.stringify({ update_file: updateFile })
             });
             const responseData = await response.json();
-
+            let s_t = document.getElementById("search_time_cost");
+            s_t.style.display = "block";
             document.getElementById("search_time_cost").innerText = `更新时间: ${responseData.cli_update_time_cost} ms`;
             alert('服务器连接已更新');
         }
@@ -235,8 +239,11 @@
                 })
             });
             const resultData = await response.json();
-
+            let s_r = document.getElementById("search-results");
+            s_r.style.display = "block";
             let resultDiv = document.getElementById("search-results");
+            let s_t = document.getElementById("search_time_cost");
+            s_t.style.display = "block";
             resultDiv.innerHTML = `<h3>区块链验证结果: ${resultData.verify_status}</h3>` +
                 `<h3>搜索结果:</h3><ul>` +
                 resultData.results.map(item => `<li>${item}</li>`).join("") +
