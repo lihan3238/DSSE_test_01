@@ -10,6 +10,7 @@ httplib::Server svr_cs;
 //atomic<string> server_status = "服务器未启动";  // 共享变量，存储状态
 
 string server_status="SERVER_OFFLINE";  // 共享变量，存储状态
+//string time_cost = "ms";
 
 void svr_index_handler(const httplib::Request&, httplib::Response& res) {
     ifstream file("server.html", ios::binary);
@@ -41,7 +42,24 @@ void search_server_handler(const httplib::Request&, httplib::Response& res) {
     server_status = "SEARCH__SERVER_ONLINE";
     searchServer();
     server_status = "SEARCHED";
-    res.set_content(R"({"message": "Search executed"})", "application/json");
+    Json::Value json_response;
+    json_response["message"] = "Reset executed";  // 自动处理中文
+    //json_response["search_time_cost"] = time_cost;  // 自动处理中文
+
+    Json::StreamWriterBuilder writer;
+    string response_body = Json::writeString(writer, json_response);
+
+    //res.set_header("Content-Type", "application/json; charset=utf-8");
+    //res.set_content(response_body, "application/json");
+
+    // **添加 CORS 头**
+    res.set_header("Access-Control-Allow-Origin", "*");
+    res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set_header("Access-Control-Allow-Headers", "Content-Type");
+
+    res.set_header("Content-Type", "application/json; charset=utf-8");
+    res.set_content(response_body, "application/json");
+    //res.set_content(R"({"message": "Search executed"})", "application/json");
 }
 
 void svr_reset_handler(const httplib::Request&, httplib::Response& res) {
@@ -67,7 +85,7 @@ void svr_status_handler(const httplib::Request&, httplib::Response& res) {
     res.set_content(response_body, "application/json");
 }
 
-int main1212412() {
+int main144() {
     svr_cs.Get("/", svr_index_handler);
     svr_cs.Post("/setup", setup_server_handler);
     svr_cs.Post("/update", start_server_handler);

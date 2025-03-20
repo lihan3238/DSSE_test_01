@@ -63,10 +63,23 @@ void update_client_handler(const httplib::Request& req, httplib::Response& res) 
 
     string updateFile = json_request["update_file"].asString();
 
+    std::string time_cost=updateClient(updateFile);
+
+    Json::Value json_response;
+    json_response["message"] = "Client updated successfully";  // 自动处理中文
+    json_response["cli_update_time_cost"] = time_cost;  // 自动处理中文
+
+    Json::StreamWriterBuilder writer;
+    string response_body = Json::writeString(writer, json_response);
 
 
-    updateClient(updateFile);
-    res.set_content(R"({"message": "Client updated successfully"})", "application/json");
+    // **添加 CORS 头**
+    res.set_header("Access-Control-Allow-Origin", "*");
+    res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set_header("Access-Control-Allow-Headers", "Content-Type");
+
+    res.set_header("Content-Type", "application/json; charset=utf-8");
+    res.set_content(response_body, "application/json");
 }
 
 // 处理 "Search"
@@ -96,18 +109,30 @@ void search_handler(const httplib::Request& req, httplib::Response& res) {
     Json::Value response;
     response["message"] = "Search completed";
     Json::Value results(Json::arrayValue);
-    // 1. 取出第一个元素（使用 std::move 避免拷贝）
+    // 1. 取出第一二个元素（使用 std::move 避免拷贝）
     string verify_status = std::move(Finalset.front());
 
-    // 2. 从 vector 中移除第一个元素
     Finalset.erase(Finalset.begin());
+
+    string svr_search_time_cost = std::move(Finalset.front());
+
+    Finalset.erase(Finalset.begin());
+
     for (const auto& item : Finalset) {
         results.append(item);
     }
-	response["verify_status"] = verify_status;
+    response["verify_status"] = verify_status;
+    response["svr_search_time_cost"] = svr_search_time_cost;
     response["results"] = results;
 
     Json::StreamWriterBuilder writer;
+
+    // **添加 CORS 头**
+    res.set_header("Access-Control-Allow-Origin", "*");
+    res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set_header("Access-Control-Allow-Headers", "Content-Type");
+
+    res.set_header("Content-Type", "application/json; charset=utf-8");
     res.set_content(Json::writeString(writer, response), "application/json");
 }
 
@@ -116,7 +141,7 @@ void cli_reset_handler(const httplib::Request&, httplib::Response& res) {
     res.set_content(R"({"message": "Reset executed"})", "application/json");
 }
 
-void main() {
+void main41() {
     svr.Get("/", index_handler);
     svr.Post("/setup", setup_data_handler);
     svr.Post("/connect", update_client_handler);

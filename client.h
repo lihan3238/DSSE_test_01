@@ -9,7 +9,7 @@
 
 void setupClientData( int BLOOM_HASHES, int BLOOM_BITS);
 
-void updateClient(string updateFile);
+std::string updateClient(string updateFile);
 
 std::vector<std::string> searchToken(const std::vector<std::string>& words,string Q,int q);
 

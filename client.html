@@ -60,14 +60,23 @@
     <div class="container">
         <h1>Client 操作界面</h1>
         <h3>初始化客户端数据</h3>
-        <div id="bloom-inputs">
-            <input type="number" id="bloomHashes" placeholder="输入 BLOOM_HASHES">
-            <input type="number" id="bloomBits" placeholder="输入 BLOOM_BITS">
-        </div>
-        <button onclick="setupData()">初始化客户端数据</button>
-        <button onclick="connectServer()">连接更新服务器</button>
+        <button onclick="toggleSetupForm()">初始化客户端数据</button>
+        <button onclick="toggleUpdateForm()">连接更新服务器</button>
         <button onclick="toggleSearchForm()">连接搜索服务器</button>
         <button onclick="reSet()">重置数据</button>
+
+        <div id="setup-form" class="form-box" style="display: none;">
+            <h3>初始化设置</h3>
+            <label>BLOOM_HASHES: <input type="number" id="bloomHashes"></label><br>
+            <label>BLOOM_BITS: <input type="number" id="bloomBits"></label><br>
+            <button onclick="setupData()">提交</button>
+        </div>
+
+        <div id="update-form" class="form-box" style="display: none;">
+            <h3>更新服务器</h3>
+            <label>更新文件名: <input type="text" id="updateFile"></label><br>
+            <button onclick="connectServer()">提交</button>
+        </div>
 
         <div id="search-form" style="display: none; margin-top: 20px;">
             <input type="number" id="wordCount" placeholder="输入要搜索的词数量">
@@ -81,11 +90,44 @@
             <button onclick="search()">执行搜索</button>
         </div>
 
+        <div id="search_time_cost" class="result-box"></div>
         <div id="search-results" class="result-box"></div>
     </div>
 
     <script>
+        function resetSetupUI() {
+            document.getElementById("search_time_cost").innerHTML = "";
+            document.getElementById("search-results").innerHTML = "";
+            document.getElementById("setup-form").style.display = "none";
+            document.getElementById("update-form").style.display = "none";
+            document.getElementById("search-form").style.display = "none";
+        }
+
+        function resetUpdateUI() {
+            document.getElementById("search_time_cost").innerHTML = "";
+            document.getElementById("search-results").innerHTML = "";
+            document.getElementById("setup-form").style.display = "none";
+            document.getElementById("update-form").style.display = "none";
+            document.getElementById("search-form").style.display = "none";
+        }
+
+        function resetSearchUI() {
+            document.getElementById("search_time_cost").innerHTML = "";
+            document.getElementById("search-results").innerHTML = "";
+            document.getElementById("setup-form").style.display = "none";
+            document.getElementById("update-form").style.display = "none";
+            document.getElementById("search-form").style.display = "none";
+        }
+
+        function toggleSetupForm() {
+            resetSetupUI();
+            let form = document.getElementById("setup-form");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+
         async function setupData() {
+            resetSetupUI();
+
             let bloomHashes = parseInt(document.getElementById("bloomHashes").value);
             let bloomBits = parseInt(document.getElementById("bloomBits").value);
 
@@ -94,7 +136,6 @@
                 return;
             }
 
-            // 存储到 localStorage
             localStorage.setItem("BLOOM_HASHES", bloomHashes);
             localStorage.setItem("BLOOM_BITS", bloomBits);
 
@@ -108,25 +149,42 @@
             document.getElementById("bloom-inputs").style.display = "none";
         }
 
+        function toggleUpdateForm() {
+            resetUpdateUI();
+            let form = document.getElementById("update-form");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+
         async function connectServer() {
-            let updateFile = prompt("请输入更新文件名:");
-            if (!updateFile || updateFile.trim() === "") return;
-            // 启动更新服务器
+            resetUpdateUI();
+
+            // 获取输入框中的 updateFile 值
+            let updateFile = document.getElementById("updateFile").value;
+
+            if (!updateFile || updateFile.trim() === "") {
+                alert("请输入更新文件名");
+                return;
+            }
+
             let xhr = new XMLHttpRequest();
             xhr.open("POST", "http://127.0.0.1:8081/update", true);
-            xhr.send();  // 直接发送，不等待响应
-            console.log("请求已发送，不等待响应。");
-            // 等待 1 秒
+            xhr.send();
+
             await new Promise(resolve => setTimeout(resolve, 1000));
-            await fetch('http://127.0.0.1:8080/connect', {
+
+            const response = await fetch('http://127.0.0.1:8080/connect', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ update_file: updateFile })
             });
+            const responseData = await response.json();
+
+            document.getElementById("search_time_cost").innerText = `更新时间: ${responseData.cli_update_time_cost} ms`;
             alert('服务器连接已更新');
         }
 
         function toggleSearchForm() {
+            resetSearchUI();
             let form = document.getElementById("search-form");
             form.style.display = form.style.display === "none" ? "block" : "none";
         }
@@ -145,6 +203,8 @@
         });
 
         async function search() {
+            resetSearchUI();
+
             let wordCount = parseInt(document.getElementById("wordCount").value) || 0;
             let searchType = document.getElementById("searchType").value;
             let wordInputs = document.getElementsByClassName("word-input");
@@ -157,12 +217,10 @@
                 return;
             }
 
-            // 启动搜索服务器
             let xhr = new XMLHttpRequest();
             xhr.open("POST", "http://127.0.0.1:8081/search", true);
-            xhr.send();  // 直接发送，不等待响应
-            console.log("请求已发送，不等待响应。");
-            // 等待 1 秒
+            xhr.send();
+
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             const response = await fetch('http://127.0.0.1:8080/search', {
@@ -179,17 +237,20 @@
             const resultData = await response.json();
 
             let resultDiv = document.getElementById("search-results");
-            resultDiv.innerHTML = `<h3>区块链验证结果:` + resultData.verify_status + `</h3>` + `<h3>搜索结果:</h3><ul>` +
+            resultDiv.innerHTML = `<h3>区块链验证结果: ${resultData.verify_status}</h3>` +
+                `<h3>搜索结果:</h3><ul>` +
                 resultData.results.map(item => `<li>${item}</li>`).join("") +
                 `</ul>`;
+            document.getElementById("search_time_cost").innerText = `搜索时间: ${resultData.svr_search_time_cost} ms`;
         }
 
         async function reSet() {
-            { {/*  document.getElementById("status").innerText = "开始重置数据";  */ } }
+            resetSearchUI();
             await fetch('http://127.0.0.1:8080/reset', { method: 'POST' });
             alert('数据已重置');
         }
     </script>
+
 </body>
 
 </html>

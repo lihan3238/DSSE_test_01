@@ -128,7 +128,8 @@ void setupClientData(int BLOOM_HASHES, int BLOOM_BITS) {
 }
 
 // 与服务器通信的函数
-void updateClient(string updateFile) {
+std::string updateClient(string updateFile) {
+    std::string result = "";
     int BLOOM_HASHES = -1; // 默认值
     int BLOOM_BITS = -1;   // 默认值
     std::string sk;
@@ -153,7 +154,7 @@ void updateClient(string updateFile) {
     std::ofstream dst("update.json", std::ios::binary);
     if (!dst) {
         std::cerr << "无法创建或打开目标文件 update.json!" << std::endl;
-        return;
+        return result;
     }
 
     // 如果源文件存在，则复制内容
@@ -286,7 +287,8 @@ void updateClient(string updateFile) {
     std::ifstream ifs2("update.json");
     if (!ifs2.is_open()) {
         std::cerr << "Failed to open the JSON file." << std::endl;
-        return;
+        return result;
+
     }
 
     Json::Reader reader;
@@ -295,7 +297,8 @@ void updateClient(string updateFile) {
     // 解析 JSON 文件
     if (!reader.parse(ifs2, jsonData)) {
         std::cerr << "Failed to parse JSON data." << std::endl;
-        return;
+        return result;
+
     }
 
     int DB[10000] = {};
@@ -443,8 +446,11 @@ void updateClient(string updateFile) {
 	// 计时点
     auto stop_1 = chrono::high_resolution_clock::now();
     chrono::duration<double, milli> duration_1 = stop_1 - start;
-	cout << fixed << setprecision(3) << "Time taken by updateClient: " << duration_1.count() << " ms" << endl;
-
+	//cout << fixed << setprecision(3) << "Time taken by updateClient: " << duration_1.count() << " ms" << endl;
+    double time_taken = duration_1.count();
+    char buffer[50];
+    sprintf(buffer, "%.3f", time_taken);
+    result = buffer; // 存入字符串变量 result，方便后续返回给前端
 
     httplib::Client serverCli("http://127.0.0.1:9001");
     Json::Value data;
@@ -647,7 +653,7 @@ void updateClient(string updateFile) {
             std::cerr << "Failed to open CBFList.json for writing!" << std::endl;
         }
 
-    return;
+    return result;
 }
 
 std::vector<std::string> searchToken(const std::vector<std::string>& words, string Q, int q) {
@@ -804,11 +810,11 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
 
 	//request
 	std::cout << "/send_Rsearch_Request" << endl;
-
+    std::string svr_search_time_cost;
     //httplib::Client cli1("http://127.0.0.1:9008");
     //auto res1 = cli1.Get("/send_Rsearch_Request");
     auto res1 = cli.Get("/send_Rsearch_Request");
-	std::cout << "res1->status: " << res1->status << endl;
+    std::cout << "res1->status: " << res1->status << endl;
 
     std::vector<std::pair<std::vector<string>, int>> Rsearch;
     std::vector<string> Rwjvl;
@@ -821,7 +827,7 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
         std::istringstream ss(res1->body);
 
         if (Json::parseFromStream(reader, ss, &root, &errs)) {
-            const Json::Value items = root;
+            const Json::Value items = root["Rsearch"];
 
             std::cout << "Received Rsearch data:" << std::endl;
             for (const auto& item : items) {
@@ -836,6 +842,8 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
                 //qwq    std::cout << "Rwjvl: " << str << std::endl;
                 //qwq}
             }
+svr_search_time_cost = root["time_cost"]["search_time_cost"].asString();
+
         }
         else {
             std::cerr << "Error parsing response: " << errs << std::endl;
@@ -946,6 +954,7 @@ vector<string> searchClient(std::vector<std::string> searchTokens, string Q, int
 			Finalset.push_back("false");
 		}
 
+        Finalset.push_back(svr_search_time_cost);
 
 
         //std::cout << "输入总索引范围：" << endl;
