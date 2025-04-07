@@ -68,7 +68,7 @@
         <div id="setup-form" class="form-box" style="display: none;">
             <h3>初始化设置</h3>
             <label>BLOOM_HASHES: <input type="number" id="bloomHashes"></label><br>
-            <label>BLOOM_BITS: <input type="number" id="bloomBits"></label><br>
+            <label>BLOOM_BLOCKS: <input type="number" id="bloomBits"></label><br>
             <button onclick="setupData()">提交</button>
         </div>
 
@@ -79,14 +79,14 @@
         </div>
 
         <div id="search-form" style="display: none; margin-top: 20px;">
-            <input type="number" id="wordCount" placeholder="输入要搜索的词数量">
-            <select id="searchType">
-                <option value="disjunctive">disjunctive</option>
-                <option value="conjunctive">conjunctive</option>
-            </select>
+            <label>搜索的词数量：<input type="number" id="wordCount" placeholder="输入要搜索的词数量"></label><br>
+            <label>查询类型：<select id="searchType">
+                    <option value="disjunctive">disjunctive</option>
+                    <option value="conjunctive">conjunctive</option>
+                </select></label>
             <div id="wordInputs"></div>
-            <input type="number" id="startIndex" placeholder="输入起始索引">
-            <input type="number" id="endIndex" placeholder="输入终止索引">
+            <label>起始索引：<input type="number" id="startIndex" placeholder="输入起始索引"></label><br>
+            <label>终止索引：<input type="number" id="endIndex" placeholder="输入终止索引"></label><br>
             <button onclick="search()">执行搜索</button>
         </div>
 
@@ -135,7 +135,7 @@
             let bloomBits = parseInt(document.getElementById("bloomBits").value);
 
             if (isNaN(bloomHashes) || isNaN(bloomBits)) {
-                alert("请输入有效的 BLOOM_HASHES 和 BLOOM_BITS 值");
+                alert("请输入有效的 BLOOM_HASHES 和 BLOOM_BLOCKS 值");
                 return;
             }
 
